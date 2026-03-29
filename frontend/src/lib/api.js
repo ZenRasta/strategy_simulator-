@@ -16,7 +16,16 @@ export async function api(path, method = 'GET', body = null) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    const error = new Error(errorData.detail || errorData.error || `API Error: ${response.status}`);
+    let message = `API Error: ${response.status}`;
+    if (typeof errorData.detail === 'string') {
+      message = errorData.detail;
+    } else if (Array.isArray(errorData.detail)) {
+      // FastAPI validation errors
+      message = errorData.detail.map(e => `${e.loc?.slice(-1)?.[0] || 'field'}: ${e.msg}`).join('; ');
+    } else if (errorData.error) {
+      message = errorData.error;
+    }
+    const error = new Error(message);
     error.status = response.status;
     error.data = errorData;
     throw error;

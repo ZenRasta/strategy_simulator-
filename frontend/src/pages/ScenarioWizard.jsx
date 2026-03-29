@@ -190,16 +190,16 @@ export default function ScenarioWizard() {
   const handleLaunch = async () => {
     setSaving(true);
     try {
-      let parsedSeed = seedConfig;
-      try { parsedSeed = JSON.parse(seedConfig); } catch {}
+      let parsedSeed = {};
+      try { parsedSeed = JSON.parse(seedConfig); } catch { parsedSeed = { raw: seedConfig }; }
 
       const scenario = await createScenario(projectId, {
         name: name.trim(),
         description: description.trim(),
         simulation_type: selectedType,
-        sub_template: selectedSubTemplate?.id || null,
-        seed_file: typeof parsedSeed === 'string' ? parsedSeed : JSON.stringify(parsedSeed),
-        config: JSON.stringify({ rounds, nash_enabled: nashEnabled, verbosity, tags: tags.split(',').map(t => t.trim()).filter(Boolean) }),
+        sub_template: selectedSubTemplate?.id || '',
+        seed_file: parsedSeed,
+        config: { rounds, nash_enabled: nashEnabled, verbosity, tags: tags.split(',').map(t => t.trim()).filter(Boolean) },
       });
       toast.success('Scenario created!');
       navigate(`/projects/${projectId}/scenarios/${scenario.id}`);

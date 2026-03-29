@@ -171,15 +171,15 @@ export default function NewProject() {
       });
 
       if (seedConfig.trim()) {
-        let parsedSeed = seedConfig;
-        try { parsedSeed = JSON.parse(seedConfig); } catch {}
+        let parsedSeed = {};
+        try { parsedSeed = JSON.parse(seedConfig); } catch { parsedSeed = { raw: seedConfig }; }
         await createScenario(project.id, {
           name: scenarioName.trim() || `${projectName} — Initial Scenario`,
           description: description.trim(),
           simulation_type: selectedType || 'custom',
-          sub_template: selectedSubTemplate?.id || null,
-          seed_file: typeof parsedSeed === 'string' ? parsedSeed : JSON.stringify(parsedSeed),
-          config: JSON.stringify({ rounds: 40, nash_enabled: true, verbosity: 'standard' }),
+          sub_template: selectedSubTemplate?.id || '',
+          seed_file: parsedSeed,
+          config: { rounds: 40, nash_enabled: true, verbosity: 'standard' },
         });
       }
 
