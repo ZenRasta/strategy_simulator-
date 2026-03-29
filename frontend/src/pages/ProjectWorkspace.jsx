@@ -2,223 +2,131 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import useAppStore from '../store/appStore';
-
-const MOCK_SCENARIOS = [
-  { id: 's1', name: 'Baseline - Normal Conditions', type: 'financial', rounds: 50, nashEnabled: true, status: 'completed', runs: 3, createdAt: '2026-03-25T10:00:00Z' },
-  { id: 's2', name: 'Stress Test - Rate Shock', type: 'financial', rounds: 80, nashEnabled: true, status: 'completed', runs: 2, createdAt: '2026-03-26T14:00:00Z' },
-  { id: 's3', name: 'Fintech Disruption Entry', type: 'market_entry', rounds: 40, nashEnabled: false, status: 'running', runs: 1, createdAt: '2026-03-27T09:00:00Z' },
-  { id: 's4', name: 'Regulatory Crackdown', type: 'regulatory', rounds: 60, nashEnabled: true, status: 'idle', runs: 0, createdAt: '2026-03-28T16:00:00Z' },
-];
-
-const MOCK_RUNS = [
-  { id: 'r1', scenarioName: 'Baseline', startedAt: '2026-03-28T14:30:00Z', duration: '4m 32s', rounds: 50, status: 'completed', nashDev: '+3.2%' },
-  { id: 'r2', scenarioName: 'Stress Test', startedAt: '2026-03-27T11:00:00Z', duration: '8m 15s', rounds: 80, status: 'completed', nashDev: '+11.8%' },
-  { id: 'r3', scenarioName: 'Fintech Disruption', startedAt: '2026-03-28T16:45:00Z', duration: '---', rounds: 22, status: 'running', nashDev: '---' },
-];
+import { api } from '../lib/api';
 
 const TYPE_COLORS = {
-  financial: 'badge-amber',
+  financial_stress_test: 'badge-amber',
   market_entry: 'badge-teal',
-  regulatory: 'badge-violet',
-  geopolitical: 'badge-red',
+  regulatory_impact: 'badge-violet',
+  crisis_management: 'badge-red',
+  public_opinion: 'badge-teal',
+  corporate_strategy: 'badge-teal',
+  custom: 'badge-teal',
 };
 
 export default function ProjectWorkspace() {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const { scenarios, fetchScenarios } = useAppStore();
-
-  const displayScenarios = scenarios.length > 0 ? scenarios : MOCK_SCENARIOS;
+  const [project, setProject] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    loadProject();
     fetchScenarios(projectId);
-  }, [projectId, fetchScenarios]);
+  }, [projectId]);
 
-  const formatDate = (d) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  async function loadProject() {
+    try {
+      const data = await api(`/projects/${projectId}`);
+      setProject(data);
+    } catch {}
+    setLoading(false);
+  }
+
+  async function deleteProject() {
+    if (!confirm('Delete this project and all its scenarios? This cannot be undone.')) return;
+    try {
+      await api(`/projects/${projectId}`, 'DELETE');
+      navigate('/dashboard');
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
+  const formatDate = (d) => {
+    if (!d) return 'Never';
+    return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
+  if (loading) {
+    return (
+      <div><Navbar />
+        <div className="container" style={{ paddingTop: 64, textAlign: 'center' }}>
+          <p style={{ fontFamily: 'var(--mono)', fontSize: 13, color: 'var(--text-dim)' }}>Loading project...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
       <Navbar />
       <div className="container" style={{ paddingTop: 32, paddingBottom: 64 }}>
         {/* Breadcrumb */}
-        <div className="pw-breadcrumb fade-up">
-          <Link to="/dashboard" className="pw-breadcrumb-link">Projects</Link>
-          <span className="pw-breadcrumb-sep">/</span>
-          <span>Project Workspace</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--text-dim)', marginBottom: 24 }}>
+          <Link to="/dashboard" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Projects</Link>
+          <span style={{ color: 'var(--border-bright)' }}>/</span>
+          <span>{project?.name || 'Project'}</span>
         </div>
 
-        <div className="pw-header fade-up-d1">
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 40 }}>
           <div>
-            <h1 className="pw-title">Caribbean Financial Contagion</h1>
-            <div className="pw-meta">
-              <span className="badge badge-amber">Finance</span>
-              <span className="text-dim text-sm">{displayScenarios.length} scenarios</span>
-              <span className="text-dim text-sm">{MOCK_RUNS.length} total runs</span>
+            <h1 style={{ fontFamily: 'var(--display)', fontSize: 28, marginBottom: 12 }}>{project?.name || 'Untitled Project'}</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              {project?.industry && <span className={`badge ${TYPE_COLORS[project.industry?.toLowerCase()] || 'badge-teal'}`}>{project.industry}</span>}
+              <span style={{ color: 'var(--text-dim)', fontSize: 12 }}>{scenarios.length} scenario{scenarios.length !== 1 ? 's' : ''}</span>
+              {project?.created_at && <span style={{ color: 'var(--text-dim)', fontSize: 12 }}>Created {formatDate(project.created_at)}</span>}
             </div>
+            {project?.description && <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 8, maxWidth: 600 }}>{project.description}</p>}
           </div>
-          <Link to={`/projects/${projectId}/scenarios/new`}>
-            <button className="btn-primary">+ New Scenario</button>
-          </Link>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn-ghost" onClick={deleteProject} style={{ fontSize: 12, color: 'var(--red)' }}>Delete</button>
+            <Link to={`/projects/${projectId}/scenarios/new`}>
+              <button className="btn-primary">+ New Scenario</button>
+            </Link>
+          </div>
         </div>
 
         {/* Scenarios */}
-        <section className="pw-section fade-up-d2">
-          <h2 className="pw-section-title">Scenarios</h2>
-          <div className="pw-scenarios">
-            {displayScenarios.map((sc) => (
-              <Link
-                key={sc.id}
-                to={`/projects/${projectId}/scenarios/${sc.id}`}
-                className="pw-scenario-card card card-interactive"
-              >
-                <div className="pw-scenario-top">
-                  <span className={`badge ${TYPE_COLORS[sc.type] || 'badge-teal'}`}>{sc.type.replace('_', ' ')}</span>
-                  <span className={`status-dot ${sc.status === 'running' ? 'status-dot--live' : sc.status === 'completed' ? 'status-dot--live' : 'status-dot--idle'}`} />
-                </div>
-                <h3 className="pw-scenario-name">{sc.name}</h3>
-                <div className="pw-scenario-meta">
-                  <span>{sc.rounds} rounds</span>
-                  <span>{sc.nashEnabled ? 'Nash ON' : 'Nash OFF'}</span>
-                  <span>{sc.runs} runs</span>
-                </div>
-                <div className="pw-scenario-date">{formatDate(sc.createdAt)}</div>
-              </Link>
-            ))}
-          </div>
-        </section>
+        <section style={{ marginBottom: 48 }}>
+          <h2 style={{ fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--text-dim)', marginBottom: 16 }}>Scenarios</h2>
 
-        {/* Recent Runs */}
-        <section className="pw-section fade-up-d4">
-          <h2 className="pw-section-title">Recent Runs</h2>
-          <div className="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Scenario</th>
-                  <th>Started</th>
-                  <th>Duration</th>
-                  <th>Rounds</th>
-                  <th>Status</th>
-                  <th>Nash Dev.</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {MOCK_RUNS.map((run) => (
-                  <tr key={run.id}>
-                    <td style={{ color: 'var(--text-primary)', fontFamily: 'var(--mono)', fontSize: 12 }}>
-                      {run.scenarioName}
-                    </td>
-                    <td style={{ fontSize: 12 }}>{formatDate(run.startedAt)}</td>
-                    <td style={{ fontFamily: 'var(--mono)', fontSize: 12 }}>{run.duration}</td>
-                    <td style={{ fontFamily: 'var(--mono)', fontSize: 12 }}>{run.rounds}</td>
-                    <td>
-                      <span className={`badge ${run.status === 'running' ? 'badge-teal' : run.status === 'completed' ? 'badge-teal' : 'badge-amber'}`}>
-                        {run.status}
-                      </span>
-                    </td>
-                    <td style={{
-                      fontFamily: 'var(--mono)',
-                      fontSize: 12,
-                      color: run.nashDev === '---' ? 'var(--text-dim)' : 'var(--amber)',
-                    }}>
-                      {run.nashDev}
-                    </td>
-                    <td>
-                      <button
-                        className="btn-ghost btn-sm"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          navigate(`/projects/${projectId}/scenarios/s1/run/${run.id}`);
-                        }}
-                      >
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {scenarios.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 0', background: 'var(--surface)', borderRadius: 12, border: '1px solid var(--border)' }}>
+              <div style={{ fontSize: 40, opacity: 0.2, marginBottom: 12 }}>&#128203;</div>
+              <h3 style={{ fontFamily: 'var(--display)', fontSize: 18, marginBottom: 8 }}>No Scenarios Yet</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 20 }}>Create your first scenario to start running simulations</p>
+              <Link to={`/projects/${projectId}/scenarios/new`} className="btn-primary" style={{ textDecoration: 'none', padding: '10px 24px' }}>
+                + Create Scenario
+              </Link>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+              {scenarios.map((sc) => (
+                <Link
+                  key={sc.id}
+                  to={`/projects/${projectId}/scenarios/${sc.id}`}
+                  className="card card-interactive"
+                  style={{ textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column', gap: 10 }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span className={`badge ${TYPE_COLORS[sc.simulation_type] || 'badge-teal'}`}>
+                      {(sc.simulation_type || 'custom').replace(/_/g, ' ')}
+                    </span>
+                  </div>
+                  <h3 style={{ fontFamily: 'var(--display)', fontSize: 15, fontWeight: 600 }}>{sc.name}</h3>
+                  {sc.description && <p style={{ fontSize: 12, color: 'var(--text-dim)', lineHeight: 1.4 }}>{sc.description.slice(0, 100)}</p>}
+                  <div style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--text-dim)', marginTop: 'auto' }}>
+                    {formatDate(sc.created_at)}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </section>
       </div>
-
-      <style>{`
-        .pw-breadcrumb {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-family: var(--mono);
-          font-size: 12px;
-          color: var(--text-dim);
-          margin-bottom: 24px;
-        }
-        .pw-breadcrumb-link { color: var(--text-secondary); }
-        .pw-breadcrumb-sep { color: var(--border-bright); }
-        .pw-header {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          margin-bottom: 40px;
-        }
-        .pw-title {
-          font-family: var(--display);
-          font-size: 28px;
-          margin-bottom: 12px;
-        }
-        .pw-meta {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-        .pw-section { margin-bottom: 48px; }
-        .pw-section-title {
-          font-family: var(--mono);
-          font-size: 11px;
-          letter-spacing: 2px;
-          text-transform: uppercase;
-          color: var(--text-dim);
-          margin-bottom: 16px;
-        }
-        .pw-scenarios {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 16px;
-        }
-        .pw-scenario-card {
-          text-decoration: none;
-          color: inherit;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-        .pw-scenario-top {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-        .pw-scenario-name {
-          font-family: var(--display);
-          font-size: 15px;
-          font-weight: 600;
-        }
-        .pw-scenario-meta {
-          display: flex;
-          gap: 16px;
-          font-family: var(--mono);
-          font-size: 11px;
-          color: var(--text-dim);
-        }
-        .pw-scenario-date {
-          font-size: 11px;
-          color: var(--text-dim);
-          margin-top: auto;
-        }
-        @media (max-width: 768px) {
-          .pw-scenarios { grid-template-columns: 1fr; }
-          .pw-header { flex-direction: column; gap: 16px; }
-        }
-      `}</style>
     </div>
   );
 }

@@ -83,9 +83,9 @@ export default function Dashboard() {
               Manage your strategic simulation projects
             </p>
           </div>
-          <button className="btn-primary" onClick={() => setShowNewModal(true)}>
+          <Link to="/projects/new" className="btn-primary" style={{ textDecoration: 'none' }}>
             + New Project
-          </button>
+          </Link>
         </div>
 
         <div className="dashboard-filters fade-up-d1">
@@ -149,9 +149,9 @@ export default function Dashboard() {
                 : 'Try adjusting your search or filter.'}
             </p>
             {displayProjects.length === 0 && (
-              <button className="btn-primary" onClick={() => setShowNewModal(true)}>
+              <Link to="/projects/new" className="btn-primary" style={{ textDecoration: 'none', display: 'inline-block', padding: '10px 24px' }}>
                 + Create First Project
-              </button>
+              </Link>
             )}
           </div>
         )}

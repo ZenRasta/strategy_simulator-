@@ -13,6 +13,7 @@ import ReportView from './pages/ReportView';
 import ScenariosListPage from './pages/ScenariosListPage';
 import TemplatesPage from './pages/TemplatesPage';
 import DocsPage from './pages/DocsPage';
+import NewProject from './pages/NewProject';
 
 export default function App() {
   return (
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="/scenarios" element={<ScenariosListPage />} />
         <Route path="/templates" element={<TemplatesPage />} />
         <Route path="/docs" element={<DocsPage />} />
+        <Route path="/projects/new" element={<NewProject />} />
         <Route path="/projects/:projectId" element={<ProjectWorkspace />} />
         <Route path="/projects/:projectId/scenarios/new" element={<ScenarioWizard />} />
         <Route path="/projects/:projectId/scenarios/:scenarioId" element={<ScenarioView />} />
