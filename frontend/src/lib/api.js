@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8000/api';
+const API_BASE = '/api';
 
 export async function api(path, method = 'GET', body = null) {
   const options = {
@@ -16,14 +16,22 @@ export async function api(path, method = 'GET', body = null) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    const error = new Error(errorData.detail || `API Error: ${response.status}`);
+    const error = new Error(errorData.detail || errorData.error || `API Error: ${response.status}`);
     error.status = response.status;
     error.data = errorData;
     throw error;
   }
 
   if (response.status === 204) return null;
-  return response.json();
+  const json = await response.json();
+  // Unwrap {success, data} envelope if present
+  if (json && typeof json === 'object' && 'success' in json && 'data' in json) {
+    if (!json.success) {
+      throw new Error(json.error || 'API request failed');
+    }
+    return json.data;
+  }
+  return json;
 }
 
 export function sseStream(path, onMessage, onError) {

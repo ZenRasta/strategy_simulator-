@@ -1,16 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
 import useAppStore from '../store/appStore';
-
-const MOCK_PROJECTS = [
-  { id: '1', name: 'Caribbean Financial Contagion', industry: 'Finance', scenarioCount: 4, lastRun: '2026-03-28T14:30:00Z', status: 'completed' },
-  { id: '2', name: 'CARICOM Trade Bloc Analysis', industry: 'Geopolitical', scenarioCount: 2, lastRun: '2026-03-27T09:15:00Z', status: 'running' },
-  { id: '3', name: 'Fintech Market Entry - Trinidad', industry: 'Technology', scenarioCount: 3, lastRun: '2026-03-25T16:45:00Z', status: 'completed' },
-  { id: '4', name: 'Energy Transition Roadmap', industry: 'Energy', scenarioCount: 1, lastRun: '2026-03-22T11:00:00Z', status: 'idle' },
-  { id: '5', name: 'Regional Banking Stress Test', industry: 'Finance', scenarioCount: 6, lastRun: '2026-03-20T08:30:00Z', status: 'completed' },
-  { id: '6', name: 'Supply Chain Resilience Audit', industry: 'Logistics', scenarioCount: 2, lastRun: null, status: 'idle' },
-];
 
 const INDUSTRY_COLORS = {
   Finance: 'badge-amber',
@@ -36,7 +28,8 @@ export default function Dashboard() {
   const [newName, setNewName] = useState('');
   const [newIndustry, setNewIndustry] = useState('Finance');
 
-  const displayProjects = (projects.length > 0 ? projects : MOCK_PROJECTS);
+  const [newDesc, setNewDesc] = useState('');
+  const displayProjects = projects;
 
   useEffect(() => {
     fetchProjects();
@@ -55,11 +48,28 @@ export default function Dashboard() {
     return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
-  const handleCreate = () => {
+  const { createProject } = useAppStore();
+
+  const handleCreate = async () => {
     if (!newName.trim()) return;
-    const id = Date.now().toString();
-    navigate(`/projects/${id}`);
-    setShowNewModal(false);
+    try {
+      const project = await createProject({
+        name: newName.trim(),
+        description: newDesc.trim(),
+        industry: newIndustry
+      });
+      toast.success('Project created');
+      setShowNewModal(false);
+      setNewName('');
+      setNewDesc('');
+      if (project?.id) {
+        navigate(`/projects/${project.id}`);
+      } else {
+        fetchProjects();
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to create project');
+    }
   };
 
   return (
@@ -129,7 +139,20 @@ export default function Dashboard() {
 
         {filtered.length === 0 && (
           <div className="dashboard-empty">
-            <p className="text-dim">No projects found matching your criteria.</p>
+            <div style={{ fontSize: 48, opacity: 0.2, marginBottom: 16 }}>&#128640;</div>
+            <h2 style={{ fontFamily: 'var(--display)', fontSize: 20, marginBottom: 8 }}>
+              {displayProjects.length === 0 ? 'No Projects Yet' : 'No matches found'}
+            </h2>
+            <p className="text-dim" style={{ marginBottom: 24 }}>
+              {displayProjects.length === 0
+                ? 'Create your first project to start running simulations.'
+                : 'Try adjusting your search or filter.'}
+            </p>
+            {displayProjects.length === 0 && (
+              <button className="btn-primary" onClick={() => setShowNewModal(true)}>
+                + Create First Project
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -148,6 +171,15 @@ export default function Dashboard() {
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 autoFocus
+              />
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <label className="label">Description</label>
+              <input
+                className="input"
+                placeholder="Brief description of the project"
+                value={newDesc}
+                onChange={(e) => setNewDesc(e.target.value)}
               />
             </div>
             <div style={{ marginBottom: 24 }}>

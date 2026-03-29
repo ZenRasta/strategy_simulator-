@@ -10,6 +10,9 @@ import SimulationWorkspace from './pages/SimulationWorkspace';
 import GodsEyeView from './pages/GodsEyeView';
 import CompareView from './pages/CompareView';
 import ReportView from './pages/ReportView';
+import ScenariosListPage from './pages/ScenariosListPage';
+import TemplatesPage from './pages/TemplatesPage';
+import DocsPage from './pages/DocsPage';
 
 export default function App() {
   return (
@@ -30,6 +33,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/scenarios" element={<ScenariosListPage />} />
+        <Route path="/templates" element={<TemplatesPage />} />
+        <Route path="/docs" element={<DocsPage />} />
         <Route path="/projects/:projectId" element={<ProjectWorkspace />} />
         <Route path="/projects/:projectId/scenarios/new" element={<ScenarioWizard />} />
         <Route path="/projects/:projectId/scenarios/:scenarioId" element={<ScenarioView />} />

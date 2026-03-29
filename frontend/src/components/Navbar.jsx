@@ -2,9 +2,9 @@ import { Link, useLocation } from 'react-router-dom';
 
 const navLinks = [
   { label: 'Projects', path: '/dashboard' },
-  { label: 'Scenarios', path: '/dashboard' },
-  { label: 'Templates', path: '/dashboard' },
-  { label: 'Documentation', path: '/dashboard' },
+  { label: 'Scenarios', path: '/scenarios' },
+  { label: 'Templates', path: '/templates' },
+  { label: 'Documentation', path: '/docs' },
 ];
 
 export default function Navbar() {
