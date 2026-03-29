@@ -22,6 +22,7 @@ from services.seed_factory import (
 )
 from services.seed_validator import validate_seed
 from services.tavily_service import search as tavily_search, extract as tavily_extract
+from services.llm_service import extract_seed_json
 
 router = APIRouter(tags=["seeds"])
 
@@ -163,19 +164,23 @@ async def seed_from_file(
     if not extracted_text.strip():
         raise HTTPException(status_code=400, detail="No text could be extracted from the file")
 
-    # Build the extraction prompt
-    prompt = _build_extraction_prompt(extracted_text, simulation_type)
+    # Build the extraction prompt and call LLM to generate seed
+    prompt = _build_extraction_prompt(extracted_text[:15000], simulation_type)
 
-    # Get the canonical seed scaffold for this type
-    scaffold = get_canonical_seed(simulation_type) or {}
+    try:
+        generated_seed = await extract_seed_json(prompt)
+    except Exception as e:
+        # Fallback to scaffold if LLM fails
+        generated_seed = get_canonical_seed(simulation_type) or {}
+        generated_seed["_llm_error"] = str(e)
 
     return {
         "success": True,
         "data": {
-            "extracted_text": extracted_text,
+            "extracted_text": extracted_text[:500],
             "text_length": len(extracted_text),
-            "extraction_prompt": prompt,
-            "seed_scaffold": scaffold,
+            "seed": generated_seed,
+            "seed_scaffold": generated_seed,
             "simulation_type": simulation_type,
             "filename": file.filename,
         },
@@ -213,16 +218,21 @@ async def seed_from_url(body: UrlSeedRequest):
     if not extracted_text.strip():
         raise HTTPException(status_code=400, detail="No text could be extracted from the URL")
 
-    prompt = _build_extraction_prompt(extracted_text, body.simulation_type)
-    scaffold = get_canonical_seed(body.simulation_type) or {}
+    prompt = _build_extraction_prompt(extracted_text[:15000], body.simulation_type)
+
+    try:
+        generated_seed = await extract_seed_json(prompt)
+    except Exception as e:
+        generated_seed = get_canonical_seed(body.simulation_type) or {}
+        generated_seed["_llm_error"] = str(e)
 
     return {
         "success": True,
         "data": {
-            "extracted_text": extracted_text,
+            "extracted_text": extracted_text[:500],
             "text_length": len(extracted_text),
-            "extraction_prompt": prompt,
-            "seed_scaffold": scaffold,
+            "seed": generated_seed,
+            "seed_scaffold": generated_seed,
             "simulation_type": body.simulation_type,
             "source_url": body.url,
         },
@@ -270,16 +280,21 @@ async def seed_from_search(body: SearchSeedRequest):
             sources.append({"title": title, "url": url})
 
     extracted_text = "\n---\n".join(text_parts)
-    prompt = _build_extraction_prompt(extracted_text, body.simulation_type)
-    scaffold = get_canonical_seed(body.simulation_type) or {}
+    prompt = _build_extraction_prompt(extracted_text[:15000], body.simulation_type)
+
+    try:
+        generated_seed = await extract_seed_json(prompt)
+    except Exception as e:
+        generated_seed = get_canonical_seed(body.simulation_type) or {}
+        generated_seed["_llm_error"] = str(e)
 
     return {
         "success": True,
         "data": {
-            "extracted_text": extracted_text,
+            "extracted_text": extracted_text[:500],
             "text_length": len(extracted_text),
-            "extraction_prompt": prompt,
-            "seed_scaffold": scaffold,
+            "seed": generated_seed,
+            "seed_scaffold": generated_seed,
             "simulation_type": body.simulation_type,
             "search_query": body.query,
             "sources": sources,

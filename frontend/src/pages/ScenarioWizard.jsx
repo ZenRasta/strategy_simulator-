@@ -116,12 +116,11 @@ export default function ScenarioWizard() {
       const json = await response.json();
       const data = json.data || json;
 
-      if (data.seed_scaffold) {
-        setSeedConfig(JSON.stringify(data.seed_scaffold, null, 2));
-      }
+      const seed = data.seed || data.seed_scaffold;
+      if (seed) setSeedConfig(JSON.stringify(seed, null, 2));
       setUploadedFileName(file.name);
       setSeedTab('manual');
-      toast.success(`Extracted ${data.text_length?.toLocaleString() || 0} characters from ${file.name}`);
+      toast.success(`Generated seed with ${seed?.actors?.length || 0} actors from ${file.name}`);
     } catch (err) {
       toast.error(err.message || 'Failed to extract file');
     }
@@ -149,12 +148,11 @@ export default function ScenarioWizard() {
         url: urlInput.trim(),
         simulation_type: selectedType || 'corporate_strategy',
       });
-      if (data.seed_scaffold) {
-        setSeedConfig(JSON.stringify(data.seed_scaffold, null, 2));
-      }
+      const seed = data.seed || data.seed_scaffold;
+      if (seed) setSeedConfig(JSON.stringify(seed, null, 2));
       setSearchSources([{ title: urlInput, url: urlInput }]);
       setSeedTab('manual');
-      toast.success(`Extracted ${data.text_length?.toLocaleString() || 0} characters from URL`);
+      toast.success(`Generated seed with ${seed?.actors?.length || 0} actors from URL`);
     } catch (err) {
       toast.error(err.message || 'Failed to extract URL');
     }
@@ -171,12 +169,11 @@ export default function ScenarioWizard() {
         simulation_type: selectedType || 'corporate_strategy',
         max_results: 10,
       });
-      if (data.seed_scaffold) {
-        setSeedConfig(JSON.stringify(data.seed_scaffold, null, 2));
-      }
+      const seed = data.seed || data.seed_scaffold;
+      if (seed) setSeedConfig(JSON.stringify(seed, null, 2));
       setSearchSources(data.sources || []);
       setSeedTab('manual');
-      toast.success(`Found ${data.sources?.length || 0} sources. Seed scaffold ready for customisation.`);
+      toast.success(`Generated seed with ${seed?.actors?.length || 0} actors from ${data.sources?.length || 0} sources`);
     } catch (err) {
       toast.error(err.message || 'Search failed');
     }

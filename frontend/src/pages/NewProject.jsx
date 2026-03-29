@@ -101,9 +101,12 @@ export default function NewProject() {
       const response = await fetch('/api/seed/from-file', { method: 'POST', body: formData });
       const json = await response.json();
       const data = json.data || json;
-      if (data.seed_scaffold) setSeedConfig(JSON.stringify(data.seed_scaffold, null, 2));
+      const seed = data.seed || data.seed_scaffold;
+      if (seed) setSeedConfig(JSON.stringify(seed, null, 2));
       setUploadedFileName(file.name);
-      toast.success(`Extracted ${data.text_length?.toLocaleString() || 0} chars from ${file.name}`);
+      setSeedMethod('manual');
+      const actorCount = seed?.actors?.length || 0;
+      toast.success(`Generated seed with ${actorCount} actors from ${file.name}`);
     } catch (err) { toast.error(err.message || 'Failed to extract file'); }
     setSeedLoading(false);
   }, [selectedType]);
@@ -120,9 +123,12 @@ export default function NewProject() {
     setSeedLoading(true);
     try {
       const data = await api('/seed/from-url', 'POST', { url: urlInput.trim(), simulation_type: selectedType || 'corporate_strategy' });
-      if (data.seed_scaffold) setSeedConfig(JSON.stringify(data.seed_scaffold, null, 2));
+      const seed = data.seed || data.seed_scaffold;
+      if (seed) setSeedConfig(JSON.stringify(seed, null, 2));
       setSearchSources([{ title: urlInput, url: urlInput }]);
-      toast.success(`Extracted content from URL`);
+      setSeedMethod('manual');
+      const actorCount = seed?.actors?.length || 0;
+      toast.success(`Generated seed with ${actorCount} actors from URL`);
     } catch (err) { toast.error(err.message || 'Failed to extract URL'); }
     setSeedLoading(false);
   }
@@ -133,9 +139,12 @@ export default function NewProject() {
     setSeedLoading(true);
     try {
       const data = await api('/seed/from-search', 'POST', { query: searchQuery.trim(), simulation_type: selectedType || 'corporate_strategy', max_results: 10 });
-      if (data.seed_scaffold) setSeedConfig(JSON.stringify(data.seed_scaffold, null, 2));
+      const seed = data.seed || data.seed_scaffold;
+      if (seed) setSeedConfig(JSON.stringify(seed, null, 2));
       setSearchSources(data.sources || []);
-      toast.success(`Found ${data.sources?.length || 0} sources`);
+      setSeedMethod('manual');
+      const actorCount = seed?.actors?.length || 0;
+      toast.success(`Generated seed with ${actorCount} actors from ${data.sources?.length || 0} sources`);
     } catch (err) { toast.error(err.message || 'Search failed'); }
     setSeedLoading(false);
   }
