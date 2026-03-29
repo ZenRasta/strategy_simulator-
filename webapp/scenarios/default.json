@@ -1,0 +1,44 @@
+[
+  {
+    "id": "base",
+    "name": "Base Case \u2014 Status Quo",
+    "description": "Continuation of current trajectory under new CEO McLetchie. IHC transition proceeds as planned, moderate growth.",
+    "requirement": "Simulate a 36-month base-case scenario for Massy Holdings Ltd. New CEO James McLetchie continues the IHC transition and 2030 vision. No major disruptions. Moderate organic growth. All agents operate under normal conditions."
+  },
+  {
+    "id": "growth",
+    "name": "Aggressive Growth \u2014 IHC 2030",
+    "description": "McLetchie pursues aggressive M&A to close the TT$25B revenue gap. Higher risk appetite, faster execution.",
+    "requirement": "Simulate a 36-month aggressive growth scenario for Massy Holdings Ltd. CEO McLetchie accelerates M&A activity to close the gap to the TT$25B 2030 revenue target. The board approves a larger acquisition war-chest. IDB Invest increases credit facility. Higher risk tolerance across the organization. Agents should reflect increased urgency and competition for deal flow."
+  },
+  {
+    "id": "crisis",
+    "name": "Governance Crisis Recurrence",
+    "description": "A new governance scandal emerges, triggering board instability and regulatory scrutiny.",
+    "requirement": "Simulate a 36-month scenario where Massy Holdings Ltd faces a new governance crisis. A whistleblower reveals irregularities in a subsidiary. TTSEC launches an investigation. NIB (20% shareholder) demands board changes. Media coverage is intense. The Delphi/Parisot-Potter precedent makes institutional memory acute. Board stability is threatened. New CEO McLetchie must navigate the crisis while maintaining the IHC transition."
+  },
+  {
+    "id": "guyana_boom",
+    "name": "Guyana Oil Boom Upside",
+    "description": "Guyana's oil economy booms beyond expectations, creating massive demand for Massy's distribution and retail infrastructure.",
+    "requirement": "Simulate a 36-month scenario where Guyana's oil economy exceeds all forecasts. GDP growth hits 50%+. ExxonMobil accelerates production. Massive infrastructure spending. Massy's warehouse and distribution operations in Guyana see explosive demand. The question is whether Massy can scale fast enough and whether competitors enter the market. Agents should reflect the opportunity vs capacity tension."
+  },
+  {
+    "id": "colombia_exit",
+    "name": "Colombia Strategic Exit",
+    "description": "Massy decides to exit Colombia due to persistent peso weakness and political instability under Petro.",
+    "requirement": "Simulate a 36-month scenario where Massy Holdings Ltd decides to strategically exit Colombia. The Colombian peso continues weakening. Political instability under President Petro creates regulatory uncertainty. The board decides to divest Colombian operations and redeploy capital to the Caribbean core. Agents should reflect the tension between cutting losses and maintaining regional presence."
+  },
+  {
+    "id": "custom_1774319096",
+    "name": "Massive selloff",
+    "description": "Major shareholders such as NIB and UTC sell the majority of the massy shares.",
+    "requirement": "simulate what would drive shareholders to sell massy stock, the response from the market, management response, response from stakeholders"
+  },
+  {
+    "id": "custom_1774404986",
+    "name": "capital flight",
+    "description": "massive capital flight to crypto",
+    "requirement": "simulate the banks and central banks reaction to massive capital flight to crypto"
+  }
+]

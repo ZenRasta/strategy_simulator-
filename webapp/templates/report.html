@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}Report — MiroFish Strategy Simulator{% endblock %}
+
+{% block nav_extra %}
+<a href="/simulation/{{ project_id }}" class="nav-link">Simulation</a>
+<a href="/gods-eye/{{ project_id }}" class="nav-link">God's Eye</a>
+<a href="/report/{{ project_id }}" class="nav-link active">Report</a>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <div>
+            <h1>Simulation Report</h1>
+            <p class="meta">AI-generated strategic analysis report</p>
+        </div>
+        <div class="header-actions">
+            <select id="sim-select" class="select" onchange="onSimSelect()">
+                <option value="">Select simulation...</option>
+            </select>
+            <button class="btn btn-primary" id="btn-generate" onclick="generateReport()" disabled>Generate Report</button>
+        </div>
+    </div>
+
+    <!-- Report Status -->
+    <div id="report-status" class="card" style="display:none;">
+        <h3>Report Generation</h3>
+        <div id="report-log" class="log-output"></div>
+    </div>
+
+    <!-- Report Content -->
+    <div id="report-content" class="card report-card" style="display:none;">
+        <div class="report-header">
+            <h2 id="report-title">Strategic Analysis Report</h2>
+            <p class="meta" id="report-meta"></p>
+        </div>
+        <div id="report-body" class="report-body"></div>
+    </div>
+
+    <!-- Existing Reports -->
+    <div id="existing-reports" style="display:none;">
+        <h2>Existing Reports</h2>
+        <div id="reports-list" class="card-grid"></div>
+    </div>
+
+    <div id="report-empty" class="card" style="text-align:center;padding:60px;">
+        <h3>No report generated yet</h3>
+        <p class="muted">Select a completed simulation and click Generate Report.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const PROJECT_ID = '{{ project_id }}';
+let SIM_ID = null;
+let REPORT_ID = null;
+
+async function loadSimulationList() {
+    const resp = await api(`/api/simulation/list?project_id=${PROJECT_ID}`);
+    const sims = resp.data || [];
+    if (Array.isArray(sims) && sims.length > 0) {
+        const sel = document.getElementById('sim-select');
+        sims.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.simulation_id || s.id;
+            opt.text = `${s.simulation_id || s.id} (${s.status || 'unknown'})`;
+            sel.appendChild(opt);
+        });
+    }
+}
+
+function onSimSelect() {
+    SIM_ID = document.getElementById('sim-select').value;
+    document.getElementById('btn-generate').disabled = !SIM_ID;
+}
+
+async function generateReport() {
+    if (!SIM_ID) return;
+
+    document.getElementById('report-status').style.display = 'block';
+    document.getElementById('report-empty').style.display = 'none';
+    reportLog('Generating report...');
+
+    const resp = await api('/api/report/generate', 'POST', {
+        simulation_id: SIM_ID,
+        project_id: PROJECT_ID,
+    });
+
+    if (!resp.success) {
+        reportLog('ERROR: ' + (resp.error || JSON.stringify(resp)), 'error');
+        return;
+    }
+
+    REPORT_ID = resp.data?.report_id || resp.data?.id;
+    reportLog(`Report generation started: ${REPORT_ID}`);
+
+    // Poll for completion
+    const poll = async () => {
+        const statusResp = await api(`/api/report/status/${REPORT_ID}`);
+        const status = statusResp.data?.status || statusResp.status || 'unknown';
+        reportLog(`Status: ${status}`);
+
+        if (status === 'completed' || status === 'ready') {
+            reportLog('Report ready!', 'success');
+            loadReportContent();
+            return;
+        }
+        if (status === 'failed') {
+            reportLog('Report generation failed.', 'error');
+            return;
+        }
+        setTimeout(poll, 5000);
+    };
+    poll();
+}
+
+async function loadReportContent() {
+    if (!REPORT_ID) return;
+    const resp = await api(`/api/report/content/${REPORT_ID}`);
+    if (!resp.success || !resp.data) return;
+
+    const content = resp.data.content || resp.data.report || '';
+    const title = resp.data.title || 'Strategic Analysis Report';
+
+    document.getElementById('report-content').style.display = 'block';
+    document.getElementById('report-title').textContent = title;
+    document.getElementById('report-meta').textContent =
+        `Simulation: ${SIM_ID} | Generated: ${new Date().toLocaleString()}`;
+
+    // Render markdown-like content
+    document.getElementById('report-body').innerHTML = renderMarkdown(content);
+}
+
+function renderMarkdown(text) {
+    // Simple markdown rendering
+    return text
+        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+        .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/^- (.+)$/gm, '<li>$1</li>')
+        .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/^(.+)$/gm, function(match) {
+            if (match.startsWith('<')) return match;
+            return match;
+        });
+}
+
+function reportLog(msg, type='info') {
+    const log = document.getElementById('report-log');
+    const cls = type === 'error' ? 'log-error' : type === 'success' ? 'log-success' : '';
+    log.innerHTML += `<div class="log-line ${cls}">[${new Date().toLocaleTimeString()}] ${msg}</div>`;
+    log.scrollTop = log.scrollHeight;
+}
+
+async function loadExistingReports() {
+    const resp = await api(`/api/report/list?project_id=${PROJECT_ID}`);
+    const reports = resp.data || [];
+    if (Array.isArray(reports) && reports.length > 0) {
+        document.getElementById('existing-reports').style.display = 'block';
+        document.getElementById('report-empty').style.display = 'none';
+        document.getElementById('reports-list').innerHTML = reports.map(r => `
+            <div class="card">
+                <h4>Report: ${escapeHtml(r.report_id || r.id)}</h4>
+                <p class="meta">Simulation: <code>${r.simulation_id || '-'}</code></p>
+                <p class="meta">Status: <span class="badge ${r.status === 'completed' ? 'badge-success' : 'badge-pending'}">${r.status}</span></p>
+                <p class="meta">Created: ${r.created_at || '-'}</p>
+                <button class="btn btn-primary btn-sm" onclick="viewReport('${r.report_id || r.id}')">View Report</button>
+            </div>
+        `).join('');
+    }
+}
+
+async function viewReport(reportId) {
+    REPORT_ID = reportId;
+    const resp = await api(`/api/report/content/${reportId}`);
+    if (resp.success && resp.data) {
+        const content = resp.data.content || resp.data.markdown_content || '';
+        const title = resp.data.title || 'Strategic Analysis Report';
+        document.getElementById('report-content').style.display = 'block';
+        document.getElementById('report-title').textContent = title;
+        document.getElementById('report-meta').textContent =
+            `Report: ${reportId} | Simulation: ${resp.data.simulation_id || '-'}`;
+        document.getElementById('report-body').innerHTML = renderMarkdown(content);
+    }
+}
+
+loadSimulationList();
+loadExistingReports();
+</script>
+{% endblock %}

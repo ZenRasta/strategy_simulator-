@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+{% block title %}Compare Scenarios — MiroFish Strategy Simulator{% endblock %}
+
+{% block nav_extra %}
+<a href="/simulation/{{ project_id }}" class="nav-link">Simulation</a>
+<a href="/gods-eye/{{ project_id }}" class="nav-link">God's Eye</a>
+<a href="/compare/{{ project_id }}" class="nav-link active">Compare</a>
+<a href="/report/{{ project_id }}" class="nav-link">Report</a>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <div>
+            <h1>Scenario Comparison</h1>
+            <p class="meta">Compare simulation outcomes across different scenarios</p>
+        </div>
+    </div>
+
+    <!-- Simulation Selector -->
+    <div class="card">
+        <h3>Select Simulations to Compare</h3>
+        <p class="chart-subtitle">Choose 2-4 completed simulations to compare side-by-side</p>
+        <div id="sim-checkboxes" class="checkbox-grid"></div>
+        <button class="btn btn-primary" onclick="runComparison()" style="margin-top:12px;">Compare Selected</button>
+    </div>
+
+    <!-- Comparison Charts -->
+    <div id="compare-content" style="display:none;">
+
+        <!-- Summary Stats -->
+        <div class="card">
+            <h3>Summary Comparison</h3>
+            <div class="table-wrapper">
+                <table class="data-table" id="compare-summary">
+                    <thead><tr><th>Metric</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Actions Timeline Overlay -->
+        <div class="card chart-card">
+            <h3>Actions Per Round — Overlay</h3>
+            <p class="chart-subtitle">Total actions per round across all selected simulations</p>
+            <div class="chart-container" style="height:400px;">
+                <canvas id="chart-compare-actions"></canvas>
+            </div>
+        </div>
+
+        <!-- Sentiment Overlay -->
+        <div class="card chart-card">
+            <h3>Sentiment Score — Overlay</h3>
+            <p class="chart-subtitle">Net sentiment trajectory across scenarios</p>
+            <div class="chart-container" style="height:400px;">
+                <canvas id="chart-compare-sentiment"></canvas>
+            </div>
+        </div>
+
+        <!-- Agent Activity Comparison -->
+        <div class="card chart-card">
+            <h3>Top Agents by Total Actions</h3>
+            <p class="chart-subtitle">Agent activity comparison across scenarios</p>
+            <div class="chart-container" style="height:400px;">
+                <canvas id="chart-compare-agents"></canvas>
+            </div>
+        </div>
+
+        <!-- Action Type Distribution -->
+        <div class="card chart-card">
+            <h3>Action Type Distribution</h3>
+            <p class="chart-subtitle">How agent behavior differs across scenarios</p>
+            <div class="chart-container" style="height:400px;">
+                <canvas id="chart-compare-types"></canvas>
+            </div>
+        </div>
+
+        <!-- Platform Comparison -->
+        <div class="card chart-card">
+            <h3>Platform Activity</h3>
+            <div class="chart-container" style="height:300px;">
+                <canvas id="chart-compare-platforms"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const PROJECT_ID = '{{ project_id }}';
+let charts = {};
+
+async function loadSimulations() {
+    const resp = await api(`/api/simulation/list?project_id=${PROJECT_ID}`);
+    const sims = resp.data || [];
+    const container = document.getElementById('sim-checkboxes');
+    if (!Array.isArray(sims) || sims.length === 0) {
+        container.innerHTML = '<p class="muted">No simulations found. Run simulations first.</p>';
+        return;
+    }
+    container.innerHTML = sims.map(s => {
+        const sid = s.simulation_id || s.id;
+        const label = s.simulation_requirement ? s.simulation_requirement.substring(0, 80) : sid;
+        return `<label class="checkbox-label">
+            <input type="checkbox" value="${sid}" class="sim-checkbox">
+            <span><strong>${escapeHtml(sid)}</strong><br><span class="muted">${escapeHtml(label)} (${s.status || '?'})</span></span>
+        </label>`;
+    }).join('');
+}
+
+async function runComparison() {
+    const checked = document.querySelectorAll('.sim-checkbox:checked');
+    const ids = Array.from(checked).map(c => c.value);
+    if (ids.length < 2) { alert('Select at least 2 simulations'); return; }
+
+    const resp = await api(`/api/analytics/compare?simulation_ids=${ids.join(',')}`);
+    if (!resp.success) { alert('Comparison failed: ' + (resp.error || '')); return; }
+
+    document.getElementById('compare-content').style.display = 'block';
+    renderComparison(resp.data, ids);
+}
+
+function renderComparison(data, simIds) {
+    const labels = simIds.map(id => (data[id]?.label || id).substring(0, 40));
+
+    // Summary table
+    const thead = document.querySelector('#compare-summary thead tr');
+    thead.innerHTML = '<th>Metric</th>' + simIds.map((id, i) => `<th style="color:${agentColor(i)}">${escapeHtml(labels[i])}</th>`).join('');
+    const tbody = document.querySelector('#compare-summary tbody');
+    const metrics = [
+        ['Total Rounds', id => data[id]?.total_rounds || 0],
+        ['Total Actions', id => data[id]?.total_actions || 0],
+        ['Active Agents', id => data[id]?.total_agents || 0],
+        ['Twitter Actions', id => data[id]?.platform_comparison?.twitter || 0],
+        ['Reddit Actions', id => data[id]?.platform_comparison?.reddit || 0],
+        ['Avg Sentiment', id => {
+            const st = data[id]?.sentiment_timeline || [];
+            if (st.length === 0) return '-';
+            return (st.reduce((s,r) => s + r.score, 0) / st.length).toFixed(3);
+        }],
+    ];
+    tbody.innerHTML = metrics.map(([name, fn]) =>
+        `<tr><td><strong>${name}</strong></td>${simIds.map(id => `<td>${fn(id)}</td>`).join('')}</tr>`
+    ).join('');
+
+    // Actions timeline overlay
+    renderOverlayChart('chart-compare-actions', simIds, labels, data,
+        d => (d.actions_per_round || []).map(r => r.total_actions),
+        d => (d.actions_per_round || []).map(r => `R${r.round}`),
+        'Actions');
+
+    // Sentiment overlay
+    renderOverlayChart('chart-compare-sentiment', simIds, labels, data,
+        d => (d.sentiment_timeline || []).map(r => r.score),
+        d => (d.sentiment_timeline || []).map(r => `R${r.round}`),
+        'Score');
+
+    // Top agents comparison
+    renderAgentComparison(simIds, labels, data);
+
+    // Action types comparison
+    renderTypeComparison(simIds, labels, data);
+
+    // Platform comparison
+    renderPlatformComparison(simIds, labels, data);
+}
+
+function renderOverlayChart(canvasId, simIds, labels, data, valueFn, labelFn, yLabel) {
+    destroyChart(canvasId);
+    const maxLen = Math.max(...simIds.map(id => valueFn(data[id] || {}).length));
+    const xLabels = labelFn(data[simIds[0]] || {});
+    while (xLabels.length < maxLen) xLabels.push(`R${xLabels.length}`);
+
+    charts[canvasId] = new Chart(document.getElementById(canvasId).getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: xLabels,
+            datasets: simIds.map((id, i) => ({
+                label: labels[i],
+                data: valueFn(data[id] || {}),
+                borderColor: agentColor(i),
+                backgroundColor: 'transparent',
+                tension: 0.3,
+                borderWidth: 2,
+            }))
+        },
+        options: {
+            scales: {
+                y: { title: { display: true, text: yLabel }, grid: { color: '#1e293b' } },
+                x: { grid: { color: '#1e293b' } }
+            }
+        }
+    });
+}
+
+function renderAgentComparison(simIds, labels, data) {
+    destroyChart('chart-compare-agents');
+    // Get union of top 10 agents across all sims
+    const agentSet = new Set();
+    simIds.forEach(id => {
+        (data[id]?.agent_summary || []).slice(0, 10).forEach(a => agentSet.add(a.name));
+    });
+    const agentNames = Array.from(agentSet).slice(0, 12);
+
+    charts['chart-compare-agents'] = new Chart(document.getElementById('chart-compare-agents').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: agentNames,
+            datasets: simIds.map((id, i) => ({
+                label: labels[i],
+                data: agentNames.map(name => {
+                    const agent = (data[id]?.agent_summary || []).find(a => a.name === name);
+                    return agent ? agent.total_actions : 0;
+                }),
+                backgroundColor: agentColor(i) + '80',
+                borderColor: agentColor(i),
+                borderWidth: 1,
+            }))
+        },
+        options: {
+            scales: {
+                y: { title: { display: true, text: 'Actions' }, grid: { color: '#1e293b' } },
+                x: { grid: { color: '#1e293b' } }
+            }
+        }
+    });
+}
+
+function renderTypeComparison(simIds, labels, data) {
+    destroyChart('chart-compare-types');
+    const typeSet = new Set();
+    simIds.forEach(id => {
+        (data[id]?.type_distribution || []).forEach(t => typeSet.add(t.type));
+    });
+    const types = Array.from(typeSet);
+
+    charts['chart-compare-types'] = new Chart(document.getElementById('chart-compare-types').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: types.map(t => t.replace('_', ' ')),
+            datasets: simIds.map((id, i) => ({
+                label: labels[i],
+                data: types.map(t => {
+                    const item = (data[id]?.type_distribution || []).find(x => x.type === t);
+                    return item ? item.count : 0;
+                }),
+                backgroundColor: agentColor(i) + '80',
+                borderColor: agentColor(i),
+                borderWidth: 1,
+            }))
+        },
+        options: {
+            scales: {
+                y: { grid: { color: '#1e293b' } },
+                x: { grid: { color: '#1e293b' } }
+            }
+        }
+    });
+}
+
+function renderPlatformComparison(simIds, labels, data) {
+    destroyChart('chart-compare-platforms');
+    charts['chart-compare-platforms'] = new Chart(document.getElementById('chart-compare-platforms').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Twitter',
+                    data: simIds.map(id => data[id]?.platform_comparison?.twitter || 0),
+                    backgroundColor: '#1da1f2',
+                },
+                {
+                    label: 'Reddit',
+                    data: simIds.map(id => data[id]?.platform_comparison?.reddit || 0),
+                    backgroundColor: '#ff4500',
+                }
+            ]
+        },
+        options: {
+            scales: {
+                y: { grid: { color: '#1e293b' } },
+                x: { grid: { color: '#1e293b' } }
+            }
+        }
+    });
+}
+
+function destroyChart(id) {
+    if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+loadSimulations();
+</script>
+{% endblock %}

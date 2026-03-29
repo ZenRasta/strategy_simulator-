@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block title %}Agents — MiroFish Strategy Simulator{% endblock %}
+
+{% block nav_extra %}
+<a href="/simulation/{{ project_id }}" class="nav-link">Simulation</a>
+<a href="/agents/{{ project_id }}" class="nav-link active">Agents</a>
+<a href="/gods-eye/{{ project_id }}" class="nav-link">God's Eye</a>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <div>
+            <h1>Agent Management</h1>
+            <p class="meta">Project: <code>{{ project_id }}</code></p>
+        </div>
+        <div class="header-actions">
+            <select id="source-select" class="select" onchange="loadAgents()">
+                <option value="seed">From Seed Document</option>
+                <option value="profiles">From Simulation Profiles</option>
+            </select>
+            <select id="seed-select" class="select" onchange="loadAgents()"></select>
+            <select id="sim-select" class="select" style="display:none;"></select>
+            <button class="btn btn-primary" onclick="showAddAgent()">+ Add Agent</button>
+        </div>
+    </div>
+
+    <!-- Agent Cards -->
+    <div id="agents-list" class="card-grid">
+        <p class="muted">Loading agents...</p>
+    </div>
+
+    <!-- Add/Edit Agent Modal -->
+    <div id="agent-modal" class="modal" style="display:none;">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="modal-title">Add New Agent</h3>
+                <button class="btn-close" onclick="closeAgentModal()">&times;</button>
+            </div>
+            <div style="padding:24px;">
+                <div class="form-grid">
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>Name</label>
+                        <input type="text" id="agent-name" class="input" placeholder="e.g., John Smith">
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <input type="text" id="agent-role" class="input" placeholder="e.g., Chief Executive Officer">
+                    </div>
+                    <div class="form-group">
+                        <label>Affiliation</label>
+                        <input type="text" id="agent-affiliation" class="input" placeholder="e.g., Massy Holdings">
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>Background</label>
+                        <textarea id="agent-background" class="input" rows="3" placeholder="Career history, expertise..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Personality / Decision Style</label>
+                        <input type="text" id="agent-personality" class="input" placeholder="e.g., Analytical, risk-averse">
+                    </div>
+                    <div class="form-group">
+                        <label>Risk Appetite</label>
+                        <select id="agent-risk" class="select">
+                            <option value="Low">Low</option>
+                            <option value="Moderate" selected>Moderate</option>
+                            <option value="High">High</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>Strategic Objectives</label>
+                        <textarea id="agent-objectives" class="input" rows="2" placeholder="What this agent is trying to achieve..."></textarea>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>Pressure Points</label>
+                        <textarea id="agent-pressure" class="input" rows="2" placeholder="Vulnerabilities, constraints..."></textarea>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>Additional Notes</label>
+                        <textarea id="agent-notes" class="input" rows="2" placeholder="Any other relevant information..."></textarea>
+                    </div>
+                </div>
+                <div style="margin-top:16px;display:flex;gap:8px;">
+                    <button class="btn btn-primary" onclick="saveAgent()">Save Agent</button>
+                    <button class="btn btn-secondary" onclick="closeAgentModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const PROJECT_ID = '{{ project_id }}';
+let currentSeedFile = '';
+
+async function init() {
+    // Load seed files
+    const seedResp = await api('/api/seeds');
+    const seeds = seedResp.data || [];
+    const seedSel = document.getElementById('seed-select');
+    seeds.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.filename;
+        opt.text = s.filename;
+        seedSel.appendChild(opt);
+    });
+    if (seeds.length > 0) {
+        currentSeedFile = seeds[0].filename;
+    }
+    // Load simulations
+    const simResp = await api(`/api/simulation/list?project_id=${PROJECT_ID}`);
+    const sims = simResp.data || [];
+    const simSel = document.getElementById('sim-select');
+    sims.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.simulation_id || s.id;
+        opt.text = s.simulation_id || s.id;
+        simSel.appendChild(opt);
+    });
+    loadAgents();
+}
+
+async function loadAgents() {
+    const source = document.getElementById('source-select').value;
+    const container = document.getElementById('agents-list');
+    container.innerHTML = '<p class="muted">Loading...</p>';
+
+    document.getElementById('seed-select').style.display = source === 'seed' ? '' : 'none';
+    document.getElementById('sim-select').style.display = source === 'profiles' ? '' : 'none';
+
+    if (source === 'seed') {
+        currentSeedFile = document.getElementById('seed-select').value;
+        if (!currentSeedFile) { container.innerHTML = '<p class="muted">No seed file selected</p>'; return; }
+        const resp = await api(`/api/seed/agents/${currentSeedFile}`);
+        if (!resp.success) { container.innerHTML = `<p class="muted">${resp.error}</p>`; return; }
+        renderSeedAgents(resp.data);
+    } else {
+        const simId = document.getElementById('sim-select').value;
+        if (!simId) { container.innerHTML = '<p class="muted">No simulation selected</p>'; return; }
+        const resp = await api(`/api/simulation/profiles/${simId}`);
+        if (!resp.success) { container.innerHTML = `<p class="muted">${resp.error}</p>`; return; }
+        renderProfileAgents(resp.data || []);
+    }
+}
+
+function renderSeedAgents(agents) {
+    const container = document.getElementById('agents-list');
+    if (!agents || agents.length === 0) {
+        container.innerHTML = '<p class="muted">No agents found in seed document</p>';
+        return;
+    }
+    container.innerHTML = agents.map((a, i) => `
+        <div class="card agent-card">
+            <div class="agent-header">
+                <h4>${escapeHtml(a.name)}</h4>
+                <button class="btn btn-danger btn-sm" onclick="deleteAgent('${escapeHtml(a.name)}')">Delete</button>
+            </div>
+            ${Object.entries(a.fields).map(([k, v]) =>
+                `<p class="agent-field"><strong>${escapeHtml(k)}:</strong> ${escapeHtml(v.substring(0, 200))}${v.length > 200 ? '...' : ''}</p>`
+            ).join('')}
+        </div>
+    `).join('');
+}
+
+function renderProfileAgents(profiles) {
+    const container = document.getElementById('agents-list');
+    if (!Array.isArray(profiles) || profiles.length === 0) {
+        container.innerHTML = '<p class="muted">No profiles available (run simulation/prepare first)</p>';
+        return;
+    }
+    container.innerHTML = profiles.map(p => `
+        <div class="card agent-card">
+            <h4>${escapeHtml(p.name || p.user_name || 'Agent ' + (p.agent_id || ''))}</h4>
+            <p class="agent-field"><strong>MBTI:</strong> ${p.mbti || '-'}</p>
+            <p class="agent-field"><strong>Age:</strong> ${p.age || '-'}</p>
+            <p class="agent-field"><strong>Country:</strong> ${p.country || '-'}</p>
+            <p class="agent-field profile-text">${escapeHtml((p.user_profile || p.profile || '').substring(0, 400))}...</p>
+        </div>
+    `).join('');
+}
+
+function showAddAgent() {
+    document.getElementById('modal-title').textContent = 'Add New Agent';
+    ['name','role','affiliation','background','personality','objectives','pressure','notes'].forEach(f =>
+        document.getElementById(`agent-${f}`).value = '');
+    document.getElementById('agent-risk').value = 'Moderate';
+    document.getElementById('agent-modal').style.display = 'flex';
+}
+
+function closeAgentModal() {
+    document.getElementById('agent-modal').style.display = 'none';
+}
+
+async function saveAgent() {
+    const name = document.getElementById('agent-name').value.trim();
+    if (!name) { alert('Name is required'); return; }
+    const fields = {};
+    const add = (id, label) => { const v = document.getElementById(id).value.trim(); if (v) fields[label] = v; };
+    add('agent-role', 'Role');
+    add('agent-affiliation', 'Affiliation');
+    add('agent-background', 'Background');
+    add('agent-personality', 'Personality / Decision Style');
+    add('agent-risk', 'Risk Appetite');
+    add('agent-objectives', 'Strategic Objectives');
+    add('agent-pressure', 'Pressure Points');
+    add('agent-notes', 'Notes');
+
+    const resp = await api(`/api/seed/agents/${currentSeedFile}/add`, 'POST', { name, fields });
+    if (resp.success) {
+        closeAgentModal();
+        loadAgents();
+    } else {
+        alert('Error: ' + (resp.error || ''));
+    }
+}
+
+async function deleteAgent(name) {
+    if (!confirm(`Delete agent "${name}"?`)) return;
+    const resp = await api(`/api/seed/agents/${currentSeedFile}/delete`, 'POST', { name });
+    if (resp.success) {
+        loadAgents();
+    } else {
+        alert('Error: ' + (resp.error || ''));
+    }
+}
+
+init();
+</script>
+{% endblock %}

@@ -1,0 +1,453 @@
+{% extends "base.html" %}
+{% block title %}God's Eye View — MiroFish Strategy Simulator{% endblock %}
+
+{% block nav_extra %}
+<a href="/simulation/{{ project_id }}" class="nav-link">Simulation</a>
+<a href="/gods-eye/{{ project_id }}" class="nav-link active">God's Eye</a>
+<a href="/report/{{ project_id }}" class="nav-link">Report</a>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <div>
+            <h1>God's Eye View</h1>
+            <p class="meta">Cross-scenario analysis, influence mapping, coalition detection, and information cascades</p>
+        </div>
+        <div class="header-actions">
+            <select id="sim-select" class="select" onchange="loadGodsEye()">
+                <option value="">Select simulation...</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="gods-eye-content" style="display:none;">
+
+        <!-- Platform Summary -->
+        <div class="chart-row">
+            <div class="stat-card-large">
+                <span class="stat-icon" style="color:#1da1f2;">&#x1F426;</span>
+                <div>
+                    <span class="stat-value" id="ge-twitter-total">0</span>
+                    <span class="stat-label">Twitter Actions</span>
+                </div>
+            </div>
+            <div class="stat-card-large">
+                <span class="stat-icon" style="color:#ff4500;">&#x1F4AC;</span>
+                <div>
+                    <span class="stat-value" id="ge-reddit-total">0</span>
+                    <span class="stat-label">Reddit Actions</span>
+                </div>
+            </div>
+            <div class="stat-card-large">
+                <span class="stat-icon" style="color:#10b981;">&#x1F465;</span>
+                <div>
+                    <span class="stat-value" id="ge-coalitions">0</span>
+                    <span class="stat-label">Coalitions</span>
+                </div>
+            </div>
+            <div class="stat-card-large">
+                <span class="stat-icon" style="color:#f59e0b;">&#x1F4A5;</span>
+                <div>
+                    <span class="stat-value" id="ge-cascades">0</span>
+                    <span class="stat-label">Info Cascades</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 1: Influence Ranking -->
+        <div class="card">
+            <h3>Influence Power Ranking</h3>
+            <p class="chart-subtitle">Composite influence score based on content creation, reactions received, and network reach</p>
+            <div class="chart-container" style="height:400px;">
+                <canvas id="chart-influence"></canvas>
+            </div>
+        </div>
+
+        <!-- Row 2: Cross-Platform Divergence -->
+        <div class="card">
+            <h3>Cross-Platform Behavior Divergence</h3>
+            <p class="chart-subtitle">How agents behave differently on Twitter vs Reddit — sorted by divergence</p>
+            <div class="chart-container" style="height:400px;">
+                <canvas id="chart-divergence"></canvas>
+            </div>
+        </div>
+
+        <!-- Row 3: Theme Heatmap -->
+        <div class="card">
+            <h3>Content Theme Evolution</h3>
+            <p class="chart-subtitle">Keyword theme intensity per round — growth, risk, governance, technology, geographic exposure</p>
+            <div id="theme-heatmap-container" class="chart-container-scroll"></div>
+        </div>
+
+        <!-- Row 4: Coalitions -->
+        <div class="card">
+            <h3>Agent Coalitions</h3>
+            <p class="chart-subtitle">Groups of agents with frequent mutual interactions (3+ interactions threshold)</p>
+            <div id="coalitions-container" class="coalitions-grid"></div>
+        </div>
+
+        <!-- Row 5: Information Cascades -->
+        <div class="card">
+            <h3>Information Cascades</h3>
+            <p class="chart-subtitle">Posts that generated chain reactions — content that spread through the network</p>
+            <div class="table-wrapper">
+                <table class="data-table" id="cascades-table">
+                    <thead>
+                        <tr>
+                            <th>Author</th>
+                            <th>Round</th>
+                            <th>Content</th>
+                            <th>Reactions</th>
+                            <th>Reaction Chain</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Row 6: Peak Activity Analysis -->
+        <div class="card">
+            <h3>Peak Activity Map</h3>
+            <p class="chart-subtitle">When each agent was most active — reveals coordinated behavior patterns</p>
+            <div class="chart-container" style="height:350px;">
+                <canvas id="chart-peak-activity"></canvas>
+            </div>
+        </div>
+
+        <!-- Row 7: Detailed Influence Table -->
+        <div class="card">
+            <h3>Detailed Influence Scores</h3>
+            <div class="table-wrapper">
+                <table class="data-table" id="influence-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Agent</th>
+                            <th>Influence Score</th>
+                            <th>Posts Created</th>
+                            <th>Reactions Received</th>
+                            <th>Agents Influenced</th>
+                            <th>Influenced By</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="gods-eye-empty" class="card" style="text-align:center;padding:60px;">
+        <h3>Select a simulation to view God's Eye analytics</h3>
+        <p class="muted">Run a simulation first from the Simulation Dashboard, then select it here.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const PROJECT_ID = '{{ project_id }}';
+let SIM_ID = null;
+let charts = {};
+
+async function loadSimulationList() {
+    const resp = await api(`/api/simulation/list?project_id=${PROJECT_ID}`);
+    const sims = resp.data || [];
+    if (Array.isArray(sims) && sims.length > 0) {
+        const sel = document.getElementById('sim-select');
+        sims.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.simulation_id || s.id;
+            opt.text = `${s.simulation_id || s.id} (${s.status || 'unknown'})`;
+            sel.appendChild(opt);
+        });
+    }
+}
+
+async function loadGodsEye() {
+    const sel = document.getElementById('sim-select');
+    if (!sel.value) return;
+    SIM_ID = sel.value;
+
+    const resp = await api(`/api/analytics/gods-eye/${SIM_ID}`);
+    if (!resp.success || !resp.data) return;
+
+    document.getElementById('gods-eye-content').style.display = 'block';
+    document.getElementById('gods-eye-empty').style.display = 'none';
+
+    const d = resp.data;
+
+    // Platform totals
+    document.getElementById('ge-twitter-total').textContent = d.platform_summary?.twitter_total || 0;
+    document.getElementById('ge-reddit-total').textContent = d.platform_summary?.reddit_total || 0;
+    document.getElementById('ge-coalitions').textContent = (d.coalitions || []).length;
+    document.getElementById('ge-cascades').textContent = (d.cascades || []).length;
+
+    renderInfluenceChart(d.influence_scores);
+    renderDivergenceChart(d.cross_platform_divergence);
+    renderThemeHeatmap(d.themes_by_round);
+    renderCoalitions(d.coalitions);
+    renderCascadesTable(d.cascades);
+    renderPeakActivity(d.peak_activity);
+    renderInfluenceTable(d.influence_scores);
+}
+
+function renderInfluenceChart(data) {
+    if (!data || data.length === 0) return;
+    destroyChart('chart-influence');
+    const top = data.slice(0, 15);
+    charts['chart-influence'] = new Chart(
+        document.getElementById('chart-influence').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: top.map(d => d.name),
+            datasets: [
+                {
+                    label: 'Influence Score',
+                    data: top.map(d => d.influence_score),
+                    backgroundColor: top.map((_, i) => agentColor(i)),
+                    borderRadius: 4,
+                },
+                {
+                    label: 'Posts Created',
+                    data: top.map(d => d.posts_created),
+                    backgroundColor: 'rgba(59, 130, 246, 0.4)',
+                    borderRadius: 4,
+                },
+                {
+                    label: 'Reactions Received',
+                    data: top.map(d => d.reactions_received),
+                    backgroundColor: 'rgba(245, 158, 11, 0.4)',
+                    borderRadius: 4,
+                }
+            ]
+        },
+        options: {
+            indexAxis: 'y',
+            scales: {
+                x: { stacked: false, grid: { color: '#1e293b' } },
+                y: { grid: { display: false } }
+            }
+        }
+    });
+}
+
+function renderDivergenceChart(data) {
+    if (!data || data.length === 0) return;
+    destroyChart('chart-divergence');
+    const top = data.slice(0, 12);
+    charts['chart-divergence'] = new Chart(
+        document.getElementById('chart-divergence').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: top.map(d => d.name),
+            datasets: [
+                {
+                    label: 'Twitter Actions',
+                    data: top.map(d => d.twitter_actions),
+                    backgroundColor: '#1da1f2',
+                    borderRadius: 4,
+                },
+                {
+                    label: 'Reddit Actions',
+                    data: top.map(d => d.reddit_actions),
+                    backgroundColor: '#ff4500',
+                    borderRadius: 4,
+                },
+                {
+                    label: 'Twitter Avg Content Len',
+                    data: top.map(d => d.twitter_avg_content_len),
+                    type: 'line',
+                    borderColor: '#1da1f2',
+                    borderDash: [4, 4],
+                    yAxisID: 'y1',
+                    tension: 0.3,
+                },
+                {
+                    label: 'Reddit Avg Content Len',
+                    data: top.map(d => d.reddit_avg_content_len),
+                    type: 'line',
+                    borderColor: '#ff4500',
+                    borderDash: [4, 4],
+                    yAxisID: 'y1',
+                    tension: 0.3,
+                }
+            ]
+        },
+        options: {
+            scales: {
+                y: { title: { display: true, text: 'Actions' }, grid: { color: '#1e293b' } },
+                y1: { position: 'right', title: { display: true, text: 'Avg Content Length' }, grid: { display: false } },
+                x: { grid: { color: '#1e293b' } }
+            }
+        }
+    });
+}
+
+function renderThemeHeatmap(data) {
+    const container = document.getElementById('theme-heatmap-container');
+    container.innerHTML = '';
+    if (!data || data.length === 0) {
+        container.innerHTML = '<p class="muted" style="padding:20px;">No theme data available</p>';
+        return;
+    }
+
+    const themes = Object.keys(data[0].themes || {});
+    if (themes.length === 0) return;
+
+    const margin = {top: 40, right: 30, bottom: 60, left: 130};
+    const cellSize = 32;
+    const width = margin.left + margin.right + data.length * cellSize;
+    const height = margin.top + margin.bottom + themes.length * cellSize;
+
+    const svg = d3.select('#theme-heatmap-container').append('svg')
+        .attr('width', width).attr('height', height);
+
+    // Find max value
+    let maxVal = 1;
+    data.forEach(d => {
+        Object.values(d.themes).forEach(v => { if (v > maxVal) maxVal = v; });
+    });
+
+    const colorScale = d3.scaleSequential(d3.interpolateViridis).domain([0, maxVal]);
+
+    // X axis — rounds
+    svg.append('g').attr('transform', `translate(${margin.left}, ${margin.top})`)
+        .selectAll('text').data(data).enter().append('text')
+        .attr('x', (d, i) => i * cellSize + cellSize / 2)
+        .attr('y', -10).attr('text-anchor', 'middle').attr('fill', '#94a3b8')
+        .attr('font-size', '10px').text(d => `R${d.round}`);
+
+    // Y axis — themes
+    svg.append('g').attr('transform', `translate(${margin.left - 8}, ${margin.top})`)
+        .selectAll('text').data(themes).enter().append('text')
+        .attr('x', 0).attr('y', (d, i) => i * cellSize + cellSize / 2 + 4)
+        .attr('text-anchor', 'end').attr('fill', '#e2e8f0')
+        .attr('font-size', '11px').attr('text-transform', 'capitalize')
+        .text(d => d.replace('_', ' '));
+
+    // Cells
+    const g = svg.append('g').attr('transform', `translate(${margin.left}, ${margin.top})`);
+    data.forEach((roundData, colIdx) => {
+        themes.forEach((theme, rowIdx) => {
+            const val = roundData.themes[theme] || 0;
+            g.append('rect')
+                .attr('x', colIdx * cellSize).attr('y', rowIdx * cellSize)
+                .attr('width', cellSize - 2).attr('height', cellSize - 2)
+                .attr('rx', 3)
+                .attr('fill', val > 0 ? colorScale(val) : '#1e293b')
+                .attr('stroke', '#0f172a').attr('stroke-width', 1)
+                .append('title').text(`${theme} | Round ${roundData.round}: ${val} mentions`);
+
+            if (val > 0) {
+                g.append('text')
+                    .attr('x', colIdx * cellSize + cellSize / 2 - 1)
+                    .attr('y', rowIdx * cellSize + cellSize / 2 + 4)
+                    .attr('text-anchor', 'middle')
+                    .attr('fill', val > maxVal * 0.6 ? '#000' : '#fff')
+                    .attr('font-size', '10px').attr('font-weight', '600')
+                    .text(val);
+            }
+        });
+    });
+}
+
+function renderCoalitions(data) {
+    const container = document.getElementById('coalitions-container');
+    if (!data || data.length === 0) {
+        container.innerHTML = '<p class="muted" style="padding:20px;">No coalitions detected (threshold: 3+ mutual interactions)</p>';
+        return;
+    }
+    container.innerHTML = data.map((c, i) => `
+        <div class="coalition-card" style="border-left: 4px solid ${agentColor(i)};">
+            <h4>Coalition ${i + 1} <span class="badge">${c.size} members</span></h4>
+            <div class="coalition-members">
+                ${c.members.map(m => `<span class="member-chip">${escapeHtml(m.name)}</span>`).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderCascadesTable(data) {
+    if (!data) return;
+    const tbody = document.querySelector('#cascades-table tbody');
+    tbody.innerHTML = data.slice(0, 20).map(c => `
+        <tr>
+            <td><strong>${escapeHtml(c.author)}</strong></td>
+            <td>Round ${c.round}</td>
+            <td class="content-cell">${escapeHtml(c.content)}</td>
+            <td><span class="badge badge-accent">${c.reaction_count}</span></td>
+            <td class="reaction-chain">
+                ${(c.reactions || []).slice(0, 5).map(r =>
+                    `<span class="reaction-chip ${r.type.toLowerCase()}">${escapeHtml(r.agent)} (${r.type.replace('_',' ')})</span>`
+                ).join('')}
+                ${(c.reactions || []).length > 5 ? `<span class="muted">+${c.reactions.length - 5} more</span>` : ''}
+            </td>
+        </tr>
+    `).join('');
+}
+
+function renderPeakActivity(data) {
+    if (!data || Object.keys(data).length === 0) return;
+    destroyChart('chart-peak-activity');
+    const entries = Object.entries(data).sort((a, b) => a[1].peak_round - b[1].peak_round);
+    charts['chart-peak-activity'] = new Chart(
+        document.getElementById('chart-peak-activity').getContext('2d'), {
+        type: 'scatter',
+        data: {
+            datasets: [{
+                label: 'Peak Round',
+                data: entries.map(([id, info]) => ({
+                    x: info.peak_round,
+                    y: info.peak_count,
+                    label: info.name,
+                })),
+                backgroundColor: entries.map((_, i) => agentColor(i)),
+                pointRadius: 8,
+                pointHoverRadius: 12,
+            }]
+        },
+        options: {
+            scales: {
+                x: { title: { display: true, text: 'Round' }, grid: { color: '#1e293b' } },
+                y: { title: { display: true, text: 'Actions at Peak' }, grid: { color: '#1e293b' } },
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => {
+                            const pt = ctx.raw;
+                            return `${pt.label}: Round ${pt.x} (${pt.y} actions)`;
+                        }
+                    }
+                },
+                legend: { display: false }
+            }
+        }
+    });
+}
+
+function renderInfluenceTable(data) {
+    if (!data) return;
+    const tbody = document.querySelector('#influence-table tbody');
+    tbody.innerHTML = data.slice(0, 20).map((a, i) => `
+        <tr>
+            <td><strong>#${i + 1}</strong></td>
+            <td><strong>${escapeHtml(a.name)}</strong></td>
+            <td><span class="badge badge-accent">${a.influence_score}</span></td>
+            <td>${a.posts_created}</td>
+            <td>${a.reactions_received}</td>
+            <td>${a.agents_influenced}</td>
+            <td>${a.influenced_by_count}</td>
+        </tr>
+    `).join('');
+}
+
+function destroyChart(id) {
+    if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+loadSimulationList();
+</script>
+{% endblock %}

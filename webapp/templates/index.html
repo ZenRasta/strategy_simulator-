@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — MiroFish Strategy Simulator{% endblock %}
+
+{% block content %}
+<div class="container">
+    <section class="hero">
+        <h1>MiroFish Strategy Simulator</h1>
+        <p class="subtitle">AI-powered multi-agent simulation engine for strategic scenario analysis</p>
+    </section>
+
+    <!-- Seed Documents -->
+    <section>
+        <h2>Seed Documents</h2>
+        <div class="card-grid" id="seeds-list">
+            <p class="muted">Loading...</p>
+        </div>
+        <div class="card upload-card">
+            <h3>Upload New Seed Document</h3>
+            <p class="meta">Upload a .md or .txt file containing your company/scenario seed data</p>
+            <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click();"
+                 ondrop="handleDrop(event)" ondragover="event.preventDefault();">
+                <p>Click or drag file here to upload</p>
+                <input type="file" id="file-input" accept=".md,.txt,.pdf" style="display:none;" onchange="uploadFile(this.files[0])">
+            </div>
+        </div>
+    </section>
+
+    <!-- Create Project -->
+    <section id="create-section" class="card" style="display:none;">
+        <h3>Create New Project</h3>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Project Name</label>
+                <input type="text" id="proj-name" class="input" placeholder="Enter project name">
+            </div>
+            <div class="form-group">
+                <label>Seed File</label>
+                <select id="proj-seed" class="select"></select>
+            </div>
+            <div class="form-group">
+                <label>Scenario</label>
+                <select id="proj-scenario" class="select"></select>
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+                <label>Description / Simulation Requirement</label>
+                <textarea id="proj-desc" class="input" rows="3">36-month strategy simulation</textarea>
+            </div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px;">
+            <button class="btn btn-primary" onclick="createProject()">Create Project & Build Graph</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('create-section').style.display='none';">Cancel</button>
+        </div>
+    </section>
+
+    <!-- Status Panel -->
+    <div id="status-panel" class="card" style="display:none;">
+        <h3>Operation Status</h3>
+        <div id="status-log" class="log-output"></div>
+        <div id="status-progress" class="progress-bar-container" style="display:none;">
+            <div class="progress-bar" id="progress-fill"></div>
+        </div>
+    </div>
+
+    <!-- Projects List -->
+    <section id="projects-section">
+        <h2>Projects</h2>
+        <div id="projects-list" class="card-grid">
+            <p class="muted">Loading projects...</p>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let selectedSeed = '';
+
+async function loadSeeds() {
+    const resp = await api('/api/seeds');
+    const seeds = resp.data || [];
+    const container = document.getElementById('seeds-list');
+    const projSeed = document.getElementById('proj-seed');
+    projSeed.innerHTML = '';
+    if (seeds.length === 0) {
+        container.innerHTML = '<p class="muted">No seed documents. Upload one to get started.</p>';
+        return;
+    }
+    container.innerHTML = seeds.map(s => `
+        <div class="card seed-card">
+            <h4>${escapeHtml(s.filename)}</h4>
+            <p class="meta">${(s.size / 1024).toFixed(1)} KB</p>
+            <div class="card-actions">
+                <button class="btn btn-primary btn-sm" onclick="selectSeed('${escapeHtml(s.filename)}')">Use for Project</button>
+                <a href="/editor/${encodeURIComponent(s.filename)}" class="btn btn-secondary btn-sm">Edit</a>
+            </div>
+        </div>
+    `).join('');
+    seeds.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.filename;
+        opt.text = s.filename;
+        projSeed.appendChild(opt);
+    });
+}
+
+async function loadScenarios() {
+    const resp = await api('/api/scenarios');
+    const scenarios = resp.data || [];
+    const sel = document.getElementById('proj-scenario');
+    sel.innerHTML = '<option value="">None (use description only)</option>';
+    scenarios.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.text = s.name;
+        opt.dataset.requirement = s.requirement || '';
+        sel.appendChild(opt);
+    });
+    sel.onchange = () => {
+        const opt = sel.options[sel.selectedIndex];
+        if (opt.dataset.requirement) {
+            document.getElementById('proj-desc').value = opt.dataset.requirement;
+        }
+    };
+}
+
+function selectSeed(filename) {
+    selectedSeed = filename;
+    document.getElementById('proj-seed').value = filename;
+    // Auto-populate project name from seed filename if empty
+    const nameInput = document.getElementById('proj-name');
+    if (!nameInput.value.trim()) {
+        const name = filename.replace(/\.(md|txt|pdf)$/i, '').replace(/[_-]/g, ' ').replace(/\bseed\b/gi, '').trim();
+        nameInput.value = name.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ').trim() || filename;
+    }
+    document.getElementById('create-section').style.display = 'block';
+    document.getElementById('create-section').scrollIntoView({behavior: 'smooth'});
+}
+
+async function uploadFile(file) {
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('file', file);
+    const resp = await fetch('/api/seed/upload', {method: 'POST', body: fd}).then(r => r.json());
+    if (resp.success) {
+        loadSeeds();
+    } else {
+        alert('Upload failed: ' + (resp.error || ''));
+    }
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) uploadFile(file);
+}
+
+async function createProject() {
+    const name = document.getElementById('proj-name').value.trim();
+    const seedFile = document.getElementById('proj-seed').value;
+    const desc = document.getElementById('proj-desc').value.trim();
+    const scenarioSel = document.getElementById('proj-scenario');
+    const scenarioReq = scenarioSel.options[scenarioSel.selectedIndex]?.dataset?.requirement || '';
+
+    if (!seedFile) { alert('Select a seed file'); return; }
+
+    showStatus('Creating project and generating ontology...');
+    showProgress();
+    updateProgress(10);
+
+    const resp = await api('/api/project/create', 'POST', {
+        name, seed_file: seedFile, description: desc, scenario_requirement: scenarioReq
+    });
+    if (resp.success) {
+        const projectId = resp.data?.project_id;
+        logStatus(`Project created: ${projectId}`);
+        logStatus(`Ontology: ${(resp.data?.ontology?.entity_types || []).length} entity types`);
+        updateProgress(40);
+        logStatus('Building knowledge graph (Zep)...');
+        const buildResp = await api('/api/graph/build', 'POST', {project_id: projectId});
+        if (buildResp.success) {
+            const taskId = buildResp.data?.task_id;
+            logStatus(`Graph build task: ${taskId}`);
+            pollGraphBuild(projectId, taskId);
+        } else {
+            logStatus('ERROR: ' + (buildResp.error || JSON.stringify(buildResp)), 'error');
+            hideProgress();
+        }
+    } else {
+        logStatus('ERROR: ' + (resp.error || JSON.stringify(resp)), 'error');
+        hideProgress();
+    }
+}
+
+async function pollGraphBuild(projectId, taskId) {
+    const poll = async () => {
+        let status = 'unknown', progress = 0, error = '';
+        if (taskId) {
+            const tr = await api(`/api/graph/task/${taskId}`);
+            const td = tr.data || tr;
+            status = td.status || 'unknown';
+            progress = td.progress || 0;
+            error = td.error || '';
+        } else {
+            const pr = await api(`/api/graph/status/${projectId}`);
+            const pd = pr.data || pr;
+            status = pd.status || 'unknown';
+            if (status === 'graph_completed') status = 'completed';
+        }
+        logStatus(`Graph: ${status} ${progress ? '(' + Math.round(progress * 100) + '%)' : ''}`);
+        updateProgress(40 + (progress || 0) * 60);
+        if (status === 'completed' || status === 'graph_completed') {
+            logStatus('Graph build complete!', 'success');
+            hideProgress();
+            loadProjects();
+            return;
+        }
+        if (status === 'failed') {
+            logStatus('Failed: ' + error, 'error');
+            hideProgress();
+            return;
+        }
+        setTimeout(poll, 8000);
+    };
+    poll();
+}
+
+async function loadProjects() {
+    const resp = await api('/api/projects');
+    const container = document.getElementById('projects-list');
+    const projects = resp.data || [];
+    if (!resp.success || !Array.isArray(projects) || projects.length === 0) {
+        container.innerHTML = '<p class="muted">No projects yet. Create one to get started.</p>';
+        return;
+    }
+    container.innerHTML = projects.map(p => {
+        const pid = p.project_id || p.id;
+        const hasGraph = !!p.graph_id;
+        const hasOntology = ['ontology_generated','graph_building','graph_completed'].includes(p.status) || hasGraph;
+        return `
+        <div class="card project-card">
+            <h4>${escapeHtml(p.name || pid)}</h4>
+            <p class="meta">Status: <span class="badge ${hasGraph ? 'badge-success' : 'badge-pending'}">${p.status || 'unknown'}</span></p>
+            <p class="meta">ID: <code>${pid}</code></p>
+            ${p.graph_id ? `<p class="meta">Graph: <code>${p.graph_id}</code></p>` : ''}
+            <div class="card-actions">
+                ${hasGraph ? `
+                    <a href="/simulation/${pid}" class="btn btn-primary btn-sm">Simulation</a>
+                    <a href="/agents/${pid}" class="btn btn-secondary btn-sm">Agents</a>
+                    <a href="/gods-eye/${pid}" class="btn btn-secondary btn-sm">God's Eye</a>
+                    <a href="/compare/${pid}" class="btn btn-secondary btn-sm">Compare</a>
+                    <a href="/report/${pid}" class="btn btn-secondary btn-sm">Report</a>
+                ` : hasOntology ? `
+                    <button class="btn btn-primary btn-sm" onclick="buildGraph('${pid}')">Build Graph</button>
+                ` : `<span class="badge badge-pending">Ontology not generated</span>`}
+                <button class="btn btn-danger btn-sm" onclick="deleteProject('${pid}', '${escapeHtml(p.name || pid)}')" style="margin-left:auto;">Delete</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+async function buildGraph(projectId) {
+    showStatus('Building knowledge graph...');
+    showProgress();
+    const resp = await api('/api/graph/build', 'POST', {project_id: projectId});
+    if (resp.success) {
+        pollGraphBuild(projectId, resp.data?.task_id);
+    } else {
+        logStatus('ERROR: ' + (resp.error || ''), 'error');
+        hideProgress();
+    }
+}
+
+function showStatus(msg) {
+    document.getElementById('status-panel').style.display = 'block';
+    document.getElementById('status-log').innerHTML = '';
+    logStatus(msg);
+}
+function logStatus(msg, type='info') {
+    const log = document.getElementById('status-log');
+    const cls = type === 'error' ? 'log-error' : type === 'success' ? 'log-success' : '';
+    log.innerHTML += `<div class="log-line ${cls}">[${new Date().toLocaleTimeString()}] ${msg}</div>`;
+    log.scrollTop = log.scrollHeight;
+}
+function showProgress() { document.getElementById('status-progress').style.display = 'block'; }
+function hideProgress() { document.getElementById('status-progress').style.display = 'none'; }
+function updateProgress(pct) { document.getElementById('progress-fill').style.width = pct + '%'; }
+
+async function deleteProject(projectId, projectName) {
+    if (!confirm(`Delete project "${projectName}" (${projectId})? This will also delete all associated simulations. This cannot be undone.`)) return;
+    const resp = await api(`/api/project/delete/${projectId}`, 'POST');
+    if (resp.success) {
+        loadProjects();
+    } else {
+        alert(resp.error || 'Failed to delete project');
+    }
+}
+
+loadSeeds();
+loadScenarios();
+loadProjects();
+</script>
+{% endblock %}

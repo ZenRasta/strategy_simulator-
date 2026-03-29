@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Editor — {{ filename }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <div>
+            <h1>Seed Document Editor</h1>
+            <p class="meta">Editing: <code>{{ filename }}</code></p>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-secondary" onclick="saveAs()">Save As...</button>
+            <button class="btn btn-primary" onclick="save()">Save</button>
+        </div>
+    </div>
+
+    <div class="editor-layout">
+        <!-- Section Navigator -->
+        <div class="editor-sidebar card">
+            <h3>Sections</h3>
+            <div id="section-nav" class="section-nav"></div>
+        </div>
+
+        <!-- Editor -->
+        <div class="editor-main card">
+            <textarea id="editor" class="editor-textarea" spellcheck="false"></textarea>
+        </div>
+    </div>
+
+    <!-- Save As Modal -->
+    <div id="save-as-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Save As New File</h3>
+                <button class="btn-close" onclick="closeSaveAs()">&times;</button>
+            </div>
+            <div style="padding:24px;">
+                <div class="form-group">
+                    <label>Filename</label>
+                    <input type="text" id="save-as-name" class="input" placeholder="my_scenario.md">
+                </div>
+                <button class="btn btn-primary" onclick="doSaveAs()" style="margin-top:12px;">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const FILENAME = '{{ filename }}';
+let originalContent = '';
+
+async function loadContent() {
+    const resp = await api(`/api/seed/${FILENAME}`);
+    if (resp.success) {
+        document.getElementById('editor').value = resp.content;
+        originalContent = resp.content;
+        buildSectionNav(resp.content);
+    }
+}
+
+function buildSectionNav(content) {
+    const nav = document.getElementById('section-nav');
+    const lines = content.split('\n');
+    let html = '';
+    lines.forEach((line, idx) => {
+        if (line.startsWith('## ')) {
+            const title = line.replace(/^#+\s*/, '').replace(/\*\*/g, '');
+            html += `<a class="section-link section-h2" onclick="scrollToLine(${idx})">${escapeHtml(title)}</a>`;
+        } else if (line.startsWith('### ')) {
+            const title = line.replace(/^#+\s*/, '').replace(/\*\*/g, '');
+            html += `<a class="section-link section-h3" onclick="scrollToLine(${idx})">${escapeHtml(title)}</a>`;
+        }
+    });
+    nav.innerHTML = html || '<p class="muted">No sections found</p>';
+}
+
+function scrollToLine(lineNum) {
+    const editor = document.getElementById('editor');
+    const lines = editor.value.split('\n');
+    let pos = 0;
+    for (let i = 0; i < lineNum && i < lines.length; i++) {
+        pos += lines[i].length + 1;
+    }
+    editor.focus();
+    editor.setSelectionRange(pos, pos);
+    // Scroll to approximate position
+    const lineHeight = 20;
+    editor.scrollTop = lineNum * lineHeight - 100;
+}
+
+async function save() {
+    const content = document.getElementById('editor').value;
+    const resp = await api(`/api/seed/${FILENAME}`, 'PUT', { content });
+    if (resp.success) {
+        originalContent = content;
+        buildSectionNav(content);
+        alert('Saved!');
+    } else {
+        alert('Save failed: ' + (resp.error || ''));
+    }
+}
+
+function saveAs() {
+    document.getElementById('save-as-modal').style.display = 'flex';
+}
+function closeSaveAs() {
+    document.getElementById('save-as-modal').style.display = 'none';
+}
+async function doSaveAs() {
+    const fname = document.getElementById('save-as-name').value.trim();
+    if (!fname) return;
+    const content = document.getElementById('editor').value;
+    const resp = await api('/api/seed/save-as', 'POST', { filename: fname, content });
+    if (resp.success) {
+        closeSaveAs();
+        window.location.href = `/editor/${resp.filename}`;
+    } else {
+        alert('Save failed: ' + (resp.error || ''));
+    }
+}
+
+// Rebuild nav on edit (debounced)
+let navTimer = null;
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('editor').addEventListener('input', () => {
+        clearTimeout(navTimer);
+        navTimer = setTimeout(() => buildSectionNav(document.getElementById('editor').value), 1000);
+    });
+});
+
+// Warn on unsaved changes
+window.addEventListener('beforeunload', (e) => {
+    if (document.getElementById('editor').value !== originalContent) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+
+loadContent();
+</script>
+{% endblock %}

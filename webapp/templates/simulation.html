@@ -1,0 +1,919 @@
+{% extends "base.html" %}
+{% block title %}Simulation — MiroFish Strategy Simulator{% endblock %}
+
+{% block nav_extra %}
+<a href="/simulation/{{ project_id }}" class="nav-link active">Simulation</a>
+<a href="/agents/{{ project_id }}" class="nav-link">Agents</a>
+<a href="/gods-eye/{{ project_id }}" class="nav-link">God's Eye</a>
+<a href="/compare/{{ project_id }}" class="nav-link">Compare</a>
+<a href="/report/{{ project_id }}" class="nav-link">Report</a>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <div>
+            <h1>Simulation Dashboard</h1>
+            <p class="meta">Project: <code>{{ project_id }}</code></p>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-primary" id="btn-run" onclick="runSimulation()">Run Simulation</button>
+            <button class="btn btn-danger" id="btn-stop" onclick="stopSimulation()" style="display:none;">Stop</button>
+            <select id="sim-select" class="select" onchange="loadSimData()">
+                <option value="">Select simulation...</option>
+            </select>
+            <button class="btn btn-danger btn-sm" id="btn-delete-sim" onclick="deleteSimulation()" style="display:none;" title="Delete selected simulation">Delete</button>
+        </div>
+    </div>
+
+    <!-- Simulation Config -->
+    <div id="sim-config" class="card">
+        <h3>Simulation Configuration</h3>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Rounds</label>
+                <input type="number" id="cfg-rounds" value="12" min="1" max="50" class="input">
+            </div>
+            <div class="form-group">
+                <label>Timeframe (months)</label>
+                <input type="number" id="cfg-timeframe" value="36" min="1" max="120" class="input">
+            </div>
+            <div class="form-group">
+                <label>Scenario <button class="btn btn-sm" style="padding:2px 6px;font-size:11px;" onclick="openAddScenarioModal()">+ New</button></label>
+                <select id="cfg-scenario" class="select"></select>
+            </div>
+            <div class="form-group">
+                <label>Agent Memory</label>
+                <select id="cfg-memory" class="select">
+                    <option value="zep" selected>Zep (persistent memory)</option>
+                    <option value="none">None (stateless)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Scenario Modal -->
+    <div id="scenario-modal" class="modal" style="display:none;" onclick="if(event.target===this)closeScenarioModal()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Scenario</h3>
+                <button class="btn btn-sm btn-secondary" onclick="closeScenarioModal()">&times;</button>
+            </div>
+            <div style="padding:24px;display:flex;flex-direction:column;gap:16px;">
+                <div class="form-group">
+                    <label>Scenario Name</label>
+                    <input type="text" id="sc-name" class="input" placeholder="e.g. Aggressive Growth — IHC 2030">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="sc-desc" class="input" rows="3" placeholder="Brief description of the scenario conditions..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Simulation Requirement</label>
+                    <textarea id="sc-req" class="input" rows="4" placeholder="Detailed requirement: what conditions to simulate, key variables, expected dynamics..."></textarea>
+                </div>
+                <div style="display:flex;gap:8px;justify-content:flex-end;">
+                    <button class="btn btn-secondary" onclick="closeScenarioModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveNewScenario()">Add Scenario</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status -->
+    <div id="sim-status" class="card" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <h3>Simulation Status</h3>
+            <span class="badge" id="status-badge">-</span>
+        </div>
+        <div class="progress-bar-container" id="sim-progress-bar" style="margin-bottom:16px;">
+            <div class="progress-bar" id="sim-progress-fill"></div>
+        </div>
+        <div class="status-grid">
+            <div class="stat-card">
+                <span class="stat-value" id="stat-round">-</span>
+                <span class="stat-label">Rounds</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="stat-total-actions">-</span>
+                <span class="stat-label">Total Actions</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="stat-agents">-</span>
+                <span class="stat-label">Active Agents</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="stat-status">-</span>
+                <span class="stat-label">Top Action</span>
+            </div>
+        </div>
+        <div id="sim-log" class="log-output" style="display:none;"></div>
+    </div>
+
+    <!-- Charts Section -->
+    <div id="charts-section" style="display:none;">
+
+        <!-- Row 1: Activity Timeline + Action Types -->
+        <div class="chart-row">
+            <div class="card chart-card chart-card-wide">
+                <h3>Actions Per Round</h3>
+                <p class="chart-subtitle">Total agent actions and unique active agents each round</p>
+                <div class="chart-container" style="height:320px;">
+                    <canvas id="chart-actions-timeline"></canvas>
+                </div>
+            </div>
+            <div class="card chart-card">
+                <h3>Action Type Distribution</h3>
+                <p class="chart-subtitle">Breakdown of agent behaviors</p>
+                <div class="chart-container" style="height:320px;">
+                    <canvas id="chart-action-types"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2: Sentiment Timeline + Platform Comparison -->
+        <div class="chart-row">
+            <div class="card chart-card chart-card-wide">
+                <h3>Sentiment Timeline</h3>
+                <p class="chart-subtitle">Positive vs negative discourse sentiment by round</p>
+                <div class="chart-container" style="height:320px;">
+                    <canvas id="chart-sentiment"></canvas>
+                </div>
+            </div>
+            <div class="card chart-card">
+                <h3>Platform Comparison</h3>
+                <p class="chart-subtitle">Twitter vs Reddit activity</p>
+                <div class="chart-container" style="height:320px;">
+                    <canvas id="chart-platforms"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 3: Activity Heatmap -->
+        <div class="card chart-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <h3>Agent Activity Heatmap</h3>
+                    <p class="chart-subtitle">Action intensity per agent per round (darker = more actions). Top 25 agents shown.</p>
+                </div>
+            </div>
+            <div id="heatmap-container" class="chart-container-scroll"></div>
+        </div>
+
+        <!-- Row 4: Agent Activity Lines -->
+        <div class="card chart-card">
+            <h3>Agent Activity Over Time</h3>
+            <p class="chart-subtitle">Per-agent action count by round</p>
+            <div class="chart-container" style="height:400px;">
+                <canvas id="chart-agent-lines"></canvas>
+            </div>
+        </div>
+
+        <!-- Row 5: Communication Network -->
+        <div class="card chart-card">
+            <h3>Communication Network</h3>
+            <p class="chart-subtitle">Agent interactions — replies, reposts, likes. Drag nodes to explore.</p>
+            <div id="network-container" class="chart-container-network"></div>
+        </div>
+
+        <!-- Row 6: Agent Summary Table -->
+        <div class="card">
+            <h3>Agent Summary</h3>
+            <p class="chart-subtitle">Per-agent statistics across the simulation</p>
+            <div class="table-wrapper">
+                <table class="data-table" id="agent-table">
+                    <thead>
+                        <tr>
+                            <th>Agent</th>
+                            <th>Total Actions</th>
+                            <th>Rounds Active</th>
+                            <th>Twitter</th>
+                            <th>Reddit</th>
+                            <th>Avg Content Len</th>
+                            <th>Top Action Type</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Row 7: Social Media Feed -->
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <div>
+                    <h3>Social Media Feed</h3>
+                    <p class="chart-subtitle">Recent posts from simulated agents</p>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <select id="feed-filter" class="select" style="width:auto;" onchange="loadFeed()">
+                        <option value="">All agents</option>
+                    </select>
+                    <button class="btn btn-sm btn-secondary" onclick="loadFeed()">Refresh</button>
+                </div>
+            </div>
+            <div id="posts-feed" class="posts-feed">
+                <p class="muted" style="padding:20px;text-align:center;">Select a simulation to view posts</p>
+            </div>
+            <div style="text-align:center;margin-top:12px;">
+                <button class="btn btn-sm btn-secondary" id="btn-load-more" style="display:none;" onclick="loadMorePosts()">Load More</button>
+            </div>
+        </div>
+
+        <!-- Row 8: Agent Interview -->
+        <div class="card">
+            <h3>Agent Interview</h3>
+            <p class="chart-subtitle">Ask any agent a question about their strategy and reasoning</p>
+            <div class="form-row">
+                <select id="interview-agent" class="select">
+                    <option value="">Select agent...</option>
+                </select>
+                <input type="text" id="interview-question" class="input input-wide"
+                    placeholder="What is your strategic assessment of Massy's IHC transition?">
+                <button class="btn btn-primary" onclick="interviewAgent()">Ask</button>
+            </div>
+            <div id="interview-response" class="interview-result" style="display:none;"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const PROJECT_ID = '{{ project_id }}';
+let SIM_ID = null;
+let charts = {};
+let pollTimer = null;
+
+// Load existing simulations for this project
+async function loadSimulations() {
+    const resp = await api(`/api/simulation/list?project_id=${PROJECT_ID}`);
+    const sims = resp.data || [];
+    if (Array.isArray(sims) && sims.length > 0) {
+        const sel = document.getElementById('sim-select');
+        sel.innerHTML = '<option value="">Select simulation...</option>';
+        sims.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.simulation_id || s.id;
+            opt.text = `${s.simulation_id || s.id} (${s.status || 'unknown'})`;
+            sel.appendChild(opt);
+        });
+        // Auto-select the most recent simulation and load its data
+        const latest = sims[sims.length - 1];
+        const latestId = latest.simulation_id || latest.id;
+        sel.value = latestId;
+        SIM_ID = latestId;
+        document.getElementById('sim-config').style.display = 'none';
+        document.getElementById('btn-delete-sim').style.display = 'inline-flex';
+        // If running, start polling; otherwise load analytics
+        if (latest.status === 'running') {
+            pollSimulation();
+        } else {
+            loadAnalytics();
+        }
+    }
+}
+
+async function runSimulation() {
+    const rounds = parseInt(document.getElementById('cfg-rounds').value) || 12;
+    const timeframe = parseInt(document.getElementById('cfg-timeframe').value) || 36;
+    const scenario = document.getElementById('cfg-scenario').value;
+    const memory = document.getElementById('cfg-memory').value;
+
+    showSimStatus('Creating simulation...');
+
+    // Step 1: Create simulation
+    const createResp = await api('/api/simulation/create', 'POST', {
+        project_id: PROJECT_ID,
+        rounds: rounds,
+        timeframe_months: timeframe,
+        scenario: scenario,
+        use_memory: memory === 'zep',
+    });
+
+    if (!createResp.success) {
+        simLog('ERROR: ' + (createResp.error || JSON.stringify(createResp)), 'error');
+        return;
+    }
+
+    SIM_ID = createResp.data?.simulation_id || createResp.data?.id;
+    simLog(`Simulation created: ${SIM_ID}`);
+
+    // Step 2: Prepare (async — generates agent profiles via LLM)
+    simLog('Preparing simulation (generating agent profiles via LLM)...');
+    simLog('This may take several minutes...');
+    const prepResp = await api('/api/simulation/prepare', 'POST', {simulation_id: SIM_ID});
+    if (!prepResp.success) {
+        simLog('ERROR preparing: ' + (prepResp.error || JSON.stringify(prepResp)), 'error');
+        return;
+    }
+
+    const prepStatus = prepResp.data?.status;
+    if (prepStatus === 'ready' || prepResp.data?.already_prepared) {
+        simLog('Preparation already complete (using cached profiles).');
+    } else {
+        // Poll prepare/status until ready
+        const prepTaskId = prepResp.data?.task_id;
+        simLog(`Prepare task: ${prepTaskId || 'in progress'}`);
+        await new Promise((resolve) => {
+            let notStartedCount = 0;
+            const pollPrep = async () => {
+                const ps = await api('/api/simulation/prepare/status', 'POST', {simulation_id: SIM_ID, task_id: prepTaskId});
+                const st = ps.data?.status || 'unknown';
+                const progress = ps.data?.progress;
+                const msg = ps.data?.message;
+                const detail = progress != null ? ` (${progress}%)` : '';
+                const extra = msg ? ` — ${msg}` : '';
+                simLog(`Prepare status: ${st}${detail}${extra}`);
+                if (st === 'ready' || st === 'completed') { resolve(); return; }
+                if (st === 'failed') { simLog('Preparation failed: ' + (ps.data?.error || ''), 'error'); resolve(); return; }
+                // If stuck on not_started, re-trigger prepare
+                if (st === 'not_started') {
+                    notStartedCount++;
+                    if (notStartedCount >= 3) {
+                        simLog('Prepare appears stuck — re-triggering...');
+                        await api('/api/simulation/prepare', 'POST', {simulation_id: SIM_ID});
+                        notStartedCount = 0;
+                    }
+                } else {
+                    notStartedCount = 0;
+                }
+                setTimeout(pollPrep, 10000);
+            };
+            pollPrep();
+        });
+    }
+    simLog('Preparation complete.');
+
+    // Step 3: Start
+    simLog('Starting simulation...');
+    const startResp = await api('/api/simulation/start', 'POST', {
+        simulation_id: SIM_ID,
+        enable_graph_memory_update: true,
+    });
+    if (!startResp.success) {
+        simLog('ERROR starting: ' + (startResp.error || JSON.stringify(startResp)), 'error');
+        return;
+    }
+    simLog('Simulation running!', 'success');
+
+    document.getElementById('btn-run').style.display = 'none';
+    document.getElementById('btn-stop').style.display = 'inline-flex';
+    document.getElementById('sim-config').style.display = 'none';
+
+    // Poll for updates
+    pollSimulation();
+}
+
+async function stopSimulation() {
+    if (!SIM_ID) return;
+    await api('/api/simulation/stop', 'POST', {simulation_id: SIM_ID});
+    simLog('Simulation stopped.', 'warning');
+    if (pollTimer) clearInterval(pollTimer);
+    document.getElementById('btn-stop').style.display = 'none';
+    document.getElementById('btn-run').style.display = 'inline-flex';
+}
+
+function pollSimulation() {
+    if (pollTimer) clearInterval(pollTimer);
+    const statusPanel = document.getElementById('sim-status');
+    statusPanel.style.display = 'block';
+    document.getElementById('sim-log').style.display = 'block';
+    let pollCount = 0;
+
+    pollTimer = setInterval(async () => {
+        if (!SIM_ID) return;
+        const resp = await api(`/api/simulation/run-status/${SIM_ID}`);
+        const data = resp.data || resp;
+        const runnerStatus = data.runner_status || 'unknown';
+        const round = data.current_round || 0;
+        const totalRounds = data.total_rounds || 1;
+        const totalActions = data.total_actions_count || 0;
+        const progress = data.progress_percent || 0;
+
+        document.getElementById('stat-round').textContent = `${round}/${totalRounds}`;
+        document.getElementById('stat-total-actions').textContent = totalActions;
+        document.getElementById('stat-agents').textContent =
+            `T:${data.twitter_actions_count || 0} R:${data.reddit_actions_count || 0}`;
+        document.getElementById('stat-status').textContent = runnerStatus;
+
+        // Status badge
+        const badge = document.getElementById('status-badge');
+        badge.textContent = `${runnerStatus} (${Math.round(progress)}%)`;
+        badge.className = 'badge badge-pending';
+
+        // Progress bar
+        document.getElementById('sim-progress-fill').style.width = progress + '%';
+
+        // Refresh charts every 3rd poll
+        pollCount++;
+        if (round > 0 && pollCount % 3 === 0) loadAnalytics();
+
+        if (runnerStatus === 'completed' || runnerStatus === 'finished') {
+            clearInterval(pollTimer);
+            simLog('Simulation completed!', 'success');
+            badge.textContent = 'completed';
+            badge.className = 'badge badge-success';
+            document.getElementById('sim-progress-fill').style.width = '100%';
+            document.getElementById('btn-stop').style.display = 'none';
+            document.getElementById('btn-run').style.display = 'inline-flex';
+            loadAnalytics();
+        } else if (runnerStatus === 'failed' || runnerStatus === 'error') {
+            clearInterval(pollTimer);
+            simLog('Simulation failed: ' + (data.error || ''), 'error');
+            badge.textContent = 'failed';
+            badge.className = 'badge';
+            document.getElementById('btn-stop').style.display = 'none';
+            document.getElementById('btn-run').style.display = 'inline-flex';
+        } else if (runnerStatus === 'stopped') {
+            clearInterval(pollTimer);
+            simLog('Simulation stopped.', 'warning');
+            badge.textContent = 'stopped';
+            badge.className = 'badge';
+            document.getElementById('btn-stop').style.display = 'none';
+            document.getElementById('btn-run').style.display = 'inline-flex';
+            loadAnalytics();
+        }
+    }, 8000);
+}
+
+async function loadSimData() {
+    const sel = document.getElementById('sim-select');
+    if (sel.value) {
+        SIM_ID = sel.value;
+        document.getElementById('sim-config').style.display = 'none';
+        document.getElementById('btn-delete-sim').style.display = 'inline-flex';
+        loadAnalytics();
+    } else {
+        document.getElementById('btn-delete-sim').style.display = 'none';
+    }
+}
+
+let feedOffset = 0;
+let currentAgentData = null;
+let sortCol = 'total_actions';
+let sortAsc = false;
+
+async function loadAnalytics() {
+    if (!SIM_ID) return;
+
+    const resp = await api(`/api/analytics/${SIM_ID}`);
+    if (!resp.success || !resp.data) {
+        simLog('No analytics data yet.');
+        return;
+    }
+
+    const d = resp.data;
+    currentAgentData = d.agent_summary;
+    document.getElementById('charts-section').style.display = 'block';
+
+    // Update status panel
+    const statusPanel = document.getElementById('sim-status');
+    statusPanel.style.display = 'block';
+    const status = d.status?.status || 'loaded';
+    const totalRounds = d.total_rounds || 0;
+    document.getElementById('stat-round').textContent = totalRounds;
+    document.getElementById('stat-total-actions').textContent = d.total_actions || '-';
+    document.getElementById('stat-agents').textContent = d.total_agents || '-';
+
+    // Top action type
+    const topType = d.type_distribution?.length > 0 ? d.type_distribution[0] : null;
+    document.getElementById('stat-status').textContent = topType ? topType.type.replace(/_/g, ' ') : '-';
+
+    // Status badge
+    const badge = document.getElementById('status-badge');
+    badge.textContent = status;
+    badge.className = 'badge' + (status === 'completed' ? ' badge-success' : status === 'running' ? ' badge-pending' : '');
+
+    // Progress bar
+    const progress = totalRounds > 0 ? 100 : 0;
+    document.getElementById('sim-progress-fill').style.width = progress + '%';
+
+    // Render all charts
+    renderActionsTimeline(d.actions_per_round);
+    renderActionTypes(d.type_distribution);
+    renderSentimentChart(d.sentiment_timeline);
+    renderPlatformChart(d.platform_comparison);
+    renderHeatmap('#heatmap-container', d.heatmap, d.total_rounds);
+    renderAgentLines(d.agent_activity_lines, d.total_rounds);
+    renderNetwork(d.network);
+    renderAgentTable(d.agent_summary);
+    populateInterviewSelect(d.agent_summary);
+    populateFeedFilter(d.agent_summary);
+    loadFeed();
+}
+
+function renderActionsTimeline(data) {
+    if (!data || data.length === 0) return;
+    destroyChart('chart-actions-timeline');
+    charts['chart-actions-timeline'] = new Chart(
+        document.getElementById('chart-actions-timeline').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: data.map(d => `Round ${d.round}`),
+            datasets: [
+                {
+                    label: 'Total Actions',
+                    data: data.map(d => d.total_actions),
+                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    borderColor: '#3b82f6',
+                    borderWidth: 1,
+                },
+                {
+                    label: 'Unique Agents',
+                    data: data.map(d => d.unique_agents),
+                    type: 'line',
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    yAxisID: 'y1',
+                }
+            ]
+        },
+        options: {
+            scales: {
+                y: { title: { display: true, text: 'Actions' }, grid: { color: '#1e293b' } },
+                y1: { position: 'right', title: { display: true, text: 'Agents' }, grid: { display: false } },
+                x: { grid: { color: '#1e293b' } }
+            }
+        }
+    });
+}
+
+function renderActionTypes(data) {
+    if (!data || data.length === 0) return;
+    destroyChart('chart-action-types');
+    charts['chart-action-types'] = new Chart(
+        document.getElementById('chart-action-types').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: data.map(d => d.type.replace('_', ' ')),
+            datasets: [{
+                data: data.map(d => d.count),
+                backgroundColor: data.map((_, i) => agentColor(i)),
+                borderColor: '#0f172a',
+                borderWidth: 2,
+            }]
+        },
+        options: {
+            plugins: {
+                legend: { position: 'right' }
+            }
+        }
+    });
+}
+
+function renderSentimentChart(data) {
+    if (!data || data.length === 0) return;
+    destroyChart('chart-sentiment');
+    charts['chart-sentiment'] = new Chart(
+        document.getElementById('chart-sentiment').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: data.map(d => `Round ${d.round}`),
+            datasets: [
+                {
+                    label: 'Positive',
+                    data: data.map(d => d.positive),
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                },
+                {
+                    label: 'Negative',
+                    data: data.map(d => d.negative),
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                },
+                {
+                    label: 'Neutral',
+                    data: data.map(d => d.neutral),
+                    borderColor: '#64748b',
+                    backgroundColor: 'rgba(100, 116, 139, 0.05)',
+                    fill: true,
+                    tension: 0.4,
+                },
+                {
+                    label: 'Net Sentiment Score',
+                    data: data.map(d => d.score),
+                    borderColor: '#f59e0b',
+                    borderDash: [5, 5],
+                    tension: 0.4,
+                    yAxisID: 'y1',
+                }
+            ]
+        },
+        options: {
+            scales: {
+                y: { title: { display: true, text: 'Count' }, grid: { color: '#1e293b' } },
+                y1: { position: 'right', title: { display: true, text: 'Score' }, grid: { display: false } },
+                x: { grid: { color: '#1e293b' } }
+            }
+        }
+    });
+}
+
+function renderPlatformChart(data) {
+    if (!data) return;
+    destroyChart('chart-platforms');
+    charts['chart-platforms'] = new Chart(
+        document.getElementById('chart-platforms').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: ['Twitter', 'Reddit'],
+            datasets: [{
+                label: 'Actions',
+                data: [data.twitter || 0, data.reddit || 0],
+                backgroundColor: ['#1da1f2', '#ff4500'],
+                borderRadius: 6,
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            scales: {
+                x: { grid: { color: '#1e293b' } },
+                y: { grid: { display: false } }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+function renderAgentLines(data, totalRounds) {
+    if (!data || Object.keys(data).length === 0) return;
+    destroyChart('chart-agent-lines');
+    const labels = Array.from({length: totalRounds}, (_, i) => `R${i}`);
+    const datasets = Object.entries(data).map(([name, values], i) => ({
+        label: name,
+        data: values,
+        borderColor: agentColor(i),
+        backgroundColor: 'transparent',
+        tension: 0.3,
+        borderWidth: 2,
+        pointRadius: 2,
+    }));
+    charts['chart-agent-lines'] = new Chart(
+        document.getElementById('chart-agent-lines').getContext('2d'), {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+            scales: {
+                y: { title: { display: true, text: 'Actions' }, grid: { color: '#1e293b' } },
+                x: { grid: { color: '#1e293b' } }
+            },
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 12 } }
+            }
+        }
+    });
+}
+
+function renderNetwork(data) {
+    const container = document.getElementById('network-container');
+    container.innerHTML = '';
+    if (!data || !data.nodes || data.nodes.length === 0) {
+        container.innerHTML = '<p class="muted" style="padding:40px;text-align:center;">No network data</p>';
+        return;
+    }
+    renderNetworkGraph('#network-container', data, container.clientWidth || 900, 500);
+}
+
+function renderAgentTable(data) {
+    if (!data) return;
+    currentAgentData = data;
+
+    // Sort
+    const sorted = [...data].sort((a, b) => {
+        let va = a[sortCol], vb = b[sortCol];
+        if (typeof va === 'string') { va = va.toLowerCase(); vb = (vb||'').toLowerCase(); }
+        if (va < vb) return sortAsc ? -1 : 1;
+        if (va > vb) return sortAsc ? 1 : -1;
+        return 0;
+    });
+
+    // Header
+    const thead = document.querySelector('#agent-table thead tr');
+    const cols = [
+        {key: 'name', label: 'Agent'},
+        {key: 'total_actions', label: 'Actions'},
+        {key: 'rounds_active', label: 'Rounds'},
+        {key: 'twitter', label: 'Twitter', get: a => a.platforms?.twitter || 0},
+        {key: 'reddit', label: 'Reddit', get: a => a.platforms?.reddit || 0},
+        {key: 'avg_content_length', label: 'Avg Len'},
+        {key: 'top_type', label: 'Top Type'},
+    ];
+    thead.innerHTML = cols.map(c =>
+        `<th class="sortable-th" onclick="sortTable('${c.key}')">${c.label} ${sortCol === c.key ? (sortAsc ? '&#9650;' : '&#9660;') : ''}</th>`
+    ).join('');
+
+    const tbody = document.querySelector('#agent-table tbody');
+    tbody.innerHTML = sorted.map(a => {
+        const topType = Object.entries(a.action_types || {}).sort((x,y) => y[1]-x[1])[0];
+        return `<tr>
+            <td><strong>${escapeHtml(a.name)}</strong></td>
+            <td>${a.total_actions}</td>
+            <td>${a.rounds_active}</td>
+            <td>${a.platforms?.twitter || 0}</td>
+            <td>${a.platforms?.reddit || 0}</td>
+            <td>${a.avg_content_length}</td>
+            <td><span class="badge">${topType ? topType[0].replace(/_/g,' ') : '-'}</span></td>
+        </tr>`;
+    }).join('');
+}
+
+function sortTable(col) {
+    if (sortCol === col) { sortAsc = !sortAsc; } else { sortCol = col; sortAsc = false; }
+    renderAgentTable(currentAgentData);
+}
+
+function populateInterviewSelect(agents) {
+    if (!agents) return;
+    const sel = document.getElementById('interview-agent');
+    sel.innerHTML = '<option value="">Select agent...</option>';
+    agents.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.id;
+        opt.text = a.name;
+        sel.appendChild(opt);
+    });
+}
+
+async function interviewAgent() {
+    const agentId = document.getElementById('interview-agent').value;
+    const question = document.getElementById('interview-question').value;
+    if (!agentId || !question) return;
+
+    const resultDiv = document.getElementById('interview-response');
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '<p class="muted">Interviewing agent...</p>';
+
+    const resp = await api('/api/simulation/interview', 'POST', {
+        simulation_id: SIM_ID,
+        agent_id: agentId,
+        question: question,
+    });
+
+    if (resp.success && resp.data) {
+        resultDiv.innerHTML = `
+            <div class="interview-answer">
+                <h4>${escapeHtml(resp.data.agent_name || agentId)}</h4>
+                <p>${escapeHtml(resp.data.response || resp.data.answer || JSON.stringify(resp.data))}</p>
+            </div>`;
+    } else {
+        resultDiv.innerHTML = `<p class="log-error">${escapeHtml(resp.error || 'Interview failed')}</p>`;
+    }
+}
+
+function destroyChart(id) {
+    if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+function showSimStatus(msg) {
+    const panel = document.getElementById('sim-status');
+    panel.style.display = 'block';
+    if (msg) {
+        document.getElementById('sim-log').style.display = 'block';
+        simLog(msg);
+    }
+}
+
+function simLog(msg, type='info') {
+    const log = document.getElementById('sim-log');
+    const cls = type === 'error' ? 'log-error' : type === 'success' ? 'log-success' : type === 'warning' ? 'log-warning' : '';
+    log.innerHTML += `<div class="log-line ${cls}">[${new Date().toLocaleTimeString()}] ${msg}</div>`;
+    log.scrollTop = log.scrollHeight;
+}
+
+// ===== Scenario Management =====
+async function loadScenarios() {
+    const resp = await api('/api/scenarios');
+    const scenarios = resp.data || [];
+    const sel = document.getElementById('cfg-scenario');
+    sel.innerHTML = '';
+    scenarios.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.text = s.name;
+        opt.dataset.requirement = s.requirement || '';
+        sel.appendChild(opt);
+    });
+}
+
+function openAddScenarioModal() {
+    document.getElementById('sc-name').value = '';
+    document.getElementById('sc-desc').value = '';
+    document.getElementById('sc-req').value = '';
+    document.getElementById('scenario-modal').style.display = 'flex';
+}
+
+function closeScenarioModal() {
+    document.getElementById('scenario-modal').style.display = 'none';
+}
+
+async function saveNewScenario() {
+    const name = document.getElementById('sc-name').value.trim();
+    const desc = document.getElementById('sc-desc').value.trim();
+    const req = document.getElementById('sc-req').value.trim();
+    if (!name) { alert('Scenario name is required'); return; }
+    if (!req) { alert('Simulation requirement is required'); return; }
+    const resp = await api('/api/scenarios/add', 'POST', { name, description: desc, requirement: req });
+    if (resp.success) {
+        closeScenarioModal();
+        loadScenarios();
+    } else {
+        alert(resp.error || 'Failed to add scenario');
+    }
+}
+
+async function deleteSimulation() {
+    const sel = document.getElementById('sim-select');
+    const simId = sel.value;
+    if (!simId) { alert('Select a simulation first'); return; }
+    if (!confirm(`Delete simulation ${simId}? This cannot be undone.`)) return;
+    const resp = await api(`/api/simulation/delete/${simId}`, 'POST');
+    if (resp.success) {
+        SIM_ID = null;
+        document.getElementById('charts-section').style.display = 'none';
+        document.getElementById('sim-status').style.display = 'none';
+        document.getElementById('sim-config').style.display = 'block';
+        document.getElementById('btn-delete-sim').style.display = 'none';
+        loadSimulations();
+    } else {
+        alert(resp.error || 'Failed to delete simulation');
+    }
+}
+
+// ===== Posts Feed =====
+function populateFeedFilter(agents) {
+    if (!agents) return;
+    const sel = document.getElementById('feed-filter');
+    sel.innerHTML = '<option value="">All agents</option>';
+    agents.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.id;
+        opt.text = a.name;
+        sel.appendChild(opt);
+    });
+}
+
+async function loadFeed() {
+    feedOffset = 0;
+    const feed = document.getElementById('posts-feed');
+    feed.innerHTML = '<p class="muted" style="padding:20px;text-align:center;">Loading posts...</p>';
+    await fetchPosts(false);
+}
+
+async function loadMorePosts() {
+    await fetchPosts(true);
+}
+
+async function fetchPosts(append) {
+    if (!SIM_ID) return;
+    const agentFilter = document.getElementById('feed-filter').value;
+    let url = `/api/simulation/posts/${SIM_ID}?limit=20&offset=${feedOffset}`;
+    if (agentFilter) url += `&agent_id=${agentFilter}`;
+    const resp = await api(url);
+    const feed = document.getElementById('posts-feed');
+    const posts = resp?.data?.posts || [];
+
+    if (!append) feed.innerHTML = '';
+
+    if (posts.length === 0 && !append) {
+        feed.innerHTML = '<p class="muted" style="padding:20px;text-align:center;">No posts yet</p>';
+        document.getElementById('btn-load-more').style.display = 'none';
+        return;
+    }
+
+    posts.forEach(p => {
+        const content = p.content || p.text || '';
+        if (!content.trim()) return;
+        const el = document.createElement('div');
+        el.className = 'post-card';
+        el.innerHTML = `
+            <div class="post-header">
+                <span class="post-author">${escapeHtml(p.user_name || p.name || 'Agent ' + (p.user_id || ''))}</span>
+                <span class="post-round">Round ${p.created_at ?? '?'}</span>
+            </div>
+            <div class="post-content">${escapeHtml(content)}</div>
+            <div class="post-meta">
+                ${p.num_likes ? `<span>&#9829; ${p.num_likes}</span>` : ''}
+                ${p.num_reposts ? `<span>&#8634; ${p.num_reposts}</span>` : ''}
+                ${p.num_comments ? `<span>&#128172; ${p.num_comments}</span>` : ''}
+            </div>
+        `;
+        feed.appendChild(el);
+    });
+
+    feedOffset += posts.length;
+    document.getElementById('btn-load-more').style.display =
+        posts.length >= 20 ? 'inline-flex' : 'none';
+}
+
+loadSimulations();
+loadScenarios();
+</script>
+{% endblock %}
