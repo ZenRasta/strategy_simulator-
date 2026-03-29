@@ -1,0 +1,77 @@
+You are a strategic intelligence analyst and game theory specialist.
+Given the following text about an organisation or situation, extract a simulation seed file.
+The simulation type is: {simulation_type_name}
+
+This means focus your extraction on: {extraction_focus}
+
+The seed file MUST follow this schema exactly:
+
+{{
+  "simulation_type": "{simulation_type_id}",
+  "title": "<concise scenario title>",
+  "world_description": "<1-2 sentence description of the simulated environment>",
+  "time_horizon": "<short/medium/long>",
+  "scenario_trigger": "<the key event or change that sets the simulation in motion>",
+  "actors": [
+    {{
+      "name": "<actor name — be specific, use real names if available>",
+      "type": "<organisation/individual/regulator/collective/institution/market>",
+      "role": "<role from the simulation type's required roles>",
+      "description": "<what this actor does and wants>",
+      "goals": ["<goal 1>", "<goal 2>"],
+      "resources": ["<resource 1>", "<resource 2>"],
+      "constraints": ["<constraint 1>"],
+      "relationships": [
+        {{
+          "actor": "<other actor name>",
+          "type": "<ally/rival/regulator/customer/partner/subordinate/competitor>",
+          "strength": <0.1 to 1.0>
+        }}
+      ],
+      "available_actions": ["<action 1>", "<action 2>", "<action 3>", "<action 4>"],
+      "personality_traits": ["<trait 1>", "<trait 2>"],
+      "personality": {{
+        "risk_tolerance": "<low/medium/high>",
+        "communication_style": "<formal/informal/aggressive/diplomatic>",
+        "decision_making": "<analytical/intuitive/consensus-driven/authoritarian>"
+      }},
+      "nash_prior_weight": 0.3
+    }}
+  ],
+  "environment": {{
+    "industry": "<industry or domain>",
+    "market_conditions": "<current state>",
+    "regulatory_environment": "<regulatory context>",
+    "key_trends": ["<trend 1>", "<trend 2>"]
+  }},
+  "environment_variables": {{
+    "<variable_name>": "<value or description>"
+  }},
+  "context": {{
+    "time_period": "<when>",
+    "geography": "<where>",
+    "background": "<additional context>",
+    "key_data_points": ["<data point 1>", "<data point 2>"]
+  }},
+  "prediction_questions": [
+    "<Specific prediction question 1>",
+    "<Specific prediction question 2>"
+  ]
+}}
+
+Type-specific extraction directive:
+{type_specific_extraction_instructions}
+
+Rules:
+- Extract 4-20 actors. Focus on the most strategically significant.
+- Use real names where available from the source text.
+- Do not invent facts — only use what is in the provided text.
+- Make actions specific to this context (not generic).
+- Each actor MUST have at least 3 available_actions.
+- Each actor MUST have at least 1 relationship to another actor.
+- Populate environment_variables with all keys required by the simulation type.
+- Generate 3-5 prediction_questions specific to this scenario.
+- Return ONLY valid JSON. No prose, no markdown fences, no comments.
+
+TEXT TO ANALYSE:
+{extracted_text}

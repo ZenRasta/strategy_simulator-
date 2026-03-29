@@ -1,0 +1,421 @@
+{
+  "simulation_type": "public_opinion",
+  "version": "1.0.0",
+  "name": "REPLACE: Descriptive name for this public opinion simulation",
+  "description": "REPLACE: 2-3 sentence description of the event, announcement, or crisis being simulated and the organisation at its centre.",
+  "environment_variables": {
+    "sentiment_baseline": 0,
+    "media_sensitivity": "medium",
+    "regulatory_scrutiny_level": "medium",
+    "social_media_velocity": "moderate",
+    "crisis_severity": "moderate"
+  },
+  "rounds": 60,
+  "actors": [
+    {
+      "id": "protagonist_org",
+      "name": "REPLACE: Name of the organisation at the centre of public opinion",
+      "role": "protagonist",
+      "actor_type": "corporate",
+      "description": "REPLACE: Brief profile of the organisation — its size, sector, market position, and why it is at the centre of this opinion event.",
+      "personality_traits": {
+        "rationality": 0.55,
+        "risk_tolerance": 0.4,
+        "adaptability": 0.5,
+        "assertiveness": 0.6,
+        "transparency": 0.45
+      },
+      "nash_prior_weight": 0.45,
+      "objectives": [
+        "Protect and restore brand reputation",
+        "Maintain customer and investor confidence",
+        "REPLACE: Add organisation-specific strategic objective",
+        "Minimise regulatory or legal consequences"
+      ],
+      "constraints": [
+        "REPLACE: Key constraint 1 (e.g., prior controversies, leadership credibility)",
+        "REPLACE: Key constraint 2 (e.g., financial exposure, contractual obligations)",
+        "Response speed limited by internal approval processes"
+      ],
+      "available_actions": [
+        "Issue public statement or press release",
+        "Hold press conference with CEO/spokesperson",
+        "Launch social media counter-narrative campaign",
+        "Engage crisis communications firm",
+        "Offer remediation or compensation to affected parties",
+        "Lobby regulator privately for favourable framing",
+        "Commission independent review or audit",
+        "Remain silent and wait for news cycle to move on"
+      ]
+    },
+    {
+      "id": "print_media",
+      "name": "REPLACE: Name of primary print/online news outlet (e.g., 'The National Gazette')",
+      "role": "amplifier",
+      "actor_type": "media",
+      "description": "REPLACE: The dominant print/online news outlet covering this sector. Readership profile, editorial lean, and relationship with protagonist.",
+      "personality_traits": {
+        "rationality": 0.35,
+        "risk_tolerance": 0.6,
+        "adaptability": 0.7,
+        "assertiveness": 0.7,
+        "transparency": 0.5
+      },
+      "nash_prior_weight": 0.25,
+      "objectives": [
+        "Break news and maintain competitive advantage over rival outlets",
+        "Drive reader engagement and subscription growth",
+        "Maintain journalistic credibility and editorial independence",
+        "Win industry awards for investigative reporting"
+      ],
+      "constraints": [
+        "Must verify claims before publication (editorial standards)",
+        "Advertising revenue partially dependent on corporate sector",
+        "Small newsroom — limited investigative capacity",
+        "Defamation risk if reporting is inaccurate"
+      ],
+      "available_actions": [
+        "Publish breaking news story on the event",
+        "Assign investigative team for deeper reporting",
+        "Run opinion/editorial pieces framing the narrative",
+        "Interview affected parties and publish human interest stories",
+        "Platform expert commentary and analysis",
+        "Follow up with FOI requests or leaked documents",
+        "Syndicate story to international outlets for wider reach",
+        "Moderate comments section that shapes public perception"
+      ]
+    },
+    {
+      "id": "social_media_public",
+      "name": "Social Media Public",
+      "role": "amplifier",
+      "actor_type": "collective",
+      "description": "The aggregate social media conversation across platforms (X/Twitter, Facebook, Instagram, TikTok, Reddit). Fragmented, fast-moving, and emotion-driven. Includes influencers, activists, and ordinary citizens sharing opinions, memes, and viral content about the event.",
+      "personality_traits": {
+        "rationality": 0.1,
+        "risk_tolerance": 0.8,
+        "adaptability": 0.9,
+        "assertiveness": 0.75,
+        "transparency": 0.15
+      },
+      "nash_prior_weight": 0.1,
+      "objectives": [
+        "Express outrage or support (emotional catharsis)",
+        "Signal virtue or group identity through public positions",
+        "Drive viral content and gain followers/engagement",
+        "Hold powerful actors accountable through public pressure"
+      ],
+      "constraints": [
+        "Attention span is extremely short — 24-48 hour peak window",
+        "Vulnerable to misinformation and manipulation",
+        "No coordinated leadership — emergent behaviour only",
+        "Platform algorithms determine what goes viral"
+      ],
+      "available_actions": [
+        "Share news articles and add commentary",
+        "Create and spread memes satirising the protagonist",
+        "Launch hashtag campaigns (boycott, support, etc.)",
+        "Dox or target individuals associated with the event",
+        "Organise real-world protests via social coordination",
+        "Amplify or suppress competing narratives",
+        "Shift attention to next news cycle (natural decay)",
+        "Platform personal stories from affected individuals"
+      ]
+    },
+    {
+      "id": "general_public_a",
+      "name": "REPLACE: Name of primary public segment (e.g., 'Urban Professional Consumers')",
+      "role": "reactor",
+      "actor_type": "collective",
+      "description": "REPLACE: Description of the primary public segment — demographics, relationship to the protagonist's products/services, and baseline opinion.",
+      "personality_traits": {
+        "rationality": 0.2,
+        "risk_tolerance": 0.3,
+        "adaptability": 0.4,
+        "assertiveness": 0.4,
+        "transparency": 0.15
+      },
+      "nash_prior_weight": 0.15,
+      "objectives": [
+        "Protect personal interests (health, financial, social)",
+        "Align behaviour with perceived social consensus",
+        "Punish or reward the protagonist based on perceived fairness",
+        "REPLACE: Segment-specific objective"
+      ],
+      "constraints": [
+        "Limited direct information — rely on media and social signals",
+        "Switching costs may prevent boycott even if sentiment is negative",
+        "Individual action feels powerless without collective mobilisation",
+        "Cognitive biases (confirmation bias, recency bias) shape interpretation"
+      ],
+      "available_actions": [
+        "Continue purchasing protagonist's products/services (status quo)",
+        "Reduce or stop purchasing (soft boycott)",
+        "Actively boycott and encourage others to join",
+        "Publicly defend the protagonist (counter-movement)",
+        "Sign petitions or join advocacy campaigns",
+        "Engage on social media to express opinion",
+        "Ignore the event entirely (apathy)",
+        "Switch to competitor products/services"
+      ]
+    },
+    {
+      "id": "general_public_b",
+      "name": "REPLACE: Name of secondary public segment (e.g., 'Rural Community Stakeholders')",
+      "role": "reactor",
+      "actor_type": "collective",
+      "description": "REPLACE: Description of the secondary public segment with a different opinion profile from segment A — perhaps more sympathetic, more hostile, or more indifferent.",
+      "personality_traits": {
+        "rationality": 0.18,
+        "risk_tolerance": 0.25,
+        "adaptability": 0.35,
+        "assertiveness": 0.5,
+        "transparency": 0.1
+      },
+      "nash_prior_weight": 0.12,
+      "objectives": [
+        "REPLACE: Primary objective specific to this segment",
+        "REPLACE: Secondary objective specific to this segment",
+        "Seek accountability from the protagonist",
+        "Protect community or group identity"
+      ],
+      "constraints": [
+        "REPLACE: Segment-specific constraint",
+        "Less access to mainstream media — rely on social and community networks",
+        "May have stronger emotional connection to the event",
+        "Geographic or socioeconomic barriers to collective action"
+      ],
+      "available_actions": [
+        "Organise community meetings and collective response",
+        "Engage local political representatives",
+        "Provide testimony or evidence to media/regulators",
+        "Join or form advocacy coalitions",
+        "Take legal action (class action, individual claims)",
+        "Accept remediation offers from the protagonist",
+        "Disengage and focus on personal coping",
+        "Escalate to national or international attention"
+      ]
+    },
+    {
+      "id": "regulator",
+      "name": "REPLACE: Name of the relevant regulatory body (e.g., 'Consumer Protection Commission')",
+      "role": "enforcer",
+      "actor_type": "government",
+      "description": "REPLACE: The regulatory body with jurisdiction over the protagonist. Its mandate, enforcement powers, and political independence.",
+      "personality_traits": {
+        "rationality": 0.65,
+        "risk_tolerance": 0.2,
+        "adaptability": 0.3,
+        "assertiveness": 0.55,
+        "transparency": 0.6
+      },
+      "nash_prior_weight": 0.6,
+      "objectives": [
+        "Fulfil statutory mandate to protect public interest",
+        "Demonstrate responsive but measured regulatory action",
+        "Avoid being seen as captured by the industry or as overreacting",
+        "Set precedent for future similar events"
+      ],
+      "constraints": [
+        "Enforcement powers may be limited by current legislation",
+        "Investigation takes time — cannot match media cycle speed",
+        "Political pressure from both industry and public sides",
+        "Resource constraints limit simultaneous enforcement actions"
+      ],
+      "available_actions": [
+        "Issue statement acknowledging awareness of the event",
+        "Open formal investigation or inquiry",
+        "Issue preliminary findings or warning letters",
+        "Impose interim measures (cease and desist, temporary suspension)",
+        "Hold public hearings to gather stakeholder input",
+        "Coordinate with other regulatory bodies or law enforcement",
+        "Impose fines or sanctions based on investigation findings",
+        "Propose new regulations to prevent recurrence"
+      ]
+    },
+    {
+      "id": "advocacy_group",
+      "name": "REPLACE: Name of relevant advocacy or pressure group (e.g., 'Consumer Rights Alliance')",
+      "role": "challenger",
+      "actor_type": "ngo",
+      "description": "REPLACE: An advocacy group, NGO, or pressure organisation that opposes the protagonist's position. Its credibility, funding, and mobilisation capacity.",
+      "personality_traits": {
+        "rationality": 0.3,
+        "risk_tolerance": 0.65,
+        "adaptability": 0.6,
+        "assertiveness": 0.8,
+        "transparency": 0.5
+      },
+      "nash_prior_weight": 0.3,
+      "objectives": [
+        "Hold the protagonist accountable for the event",
+        "Achieve concrete remediation or policy change",
+        "Grow membership and funding through high-profile campaign",
+        "Shift broader public opinion toward their cause"
+      ],
+      "constraints": [
+        "Limited budget and staff for sustained campaign",
+        "Credibility depends on factual accuracy — vulnerable to discrediting",
+        "Must balance confrontation with constructive engagement",
+        "Donor expectations may push for visible wins over long-term change"
+      ],
+      "available_actions": [
+        "Launch public awareness campaign against the protagonist",
+        "File formal complaints with regulators",
+        "Organise protests, petitions, or boycott campaigns",
+        "Engage legal counsel for potential class action",
+        "Brief media with research, data, and affected individuals",
+        "Negotiate privately with protagonist for settlement",
+        "Coalition-build with other advocacy groups for amplified pressure",
+        "Publish independent research or counter-narrative reports"
+      ]
+    },
+    {
+      "id": "competitor",
+      "name": "REPLACE: Name of primary competitor (e.g., 'GlobalTech Industries')",
+      "role": "challenger",
+      "actor_type": "corporate",
+      "description": "REPLACE: The protagonist's primary competitor. How they might exploit this event — through marketing, poaching customers, or public statements of differentiation.",
+      "personality_traits": {
+        "rationality": 0.55,
+        "risk_tolerance": 0.5,
+        "adaptability": 0.6,
+        "assertiveness": 0.5,
+        "transparency": 0.35
+      },
+      "nash_prior_weight": 0.5,
+      "objectives": [
+        "Capture market share from the protagonist during reputation damage",
+        "Position brand as the responsible alternative",
+        "Avoid own exposure to similar criticism (glass house risk)",
+        "Strengthen relationships with protagonist's dissatisfied customers"
+      ],
+      "constraints": [
+        "Overt exploitation may backfire as opportunistic",
+        "May have similar vulnerabilities that could be exposed in retaliation",
+        "Industry solidarity norms may discourage public criticism",
+        "Must balance short-term gains against long-term competitor relationship"
+      ],
+      "available_actions": [
+        "Remain publicly silent but increase targeted marketing",
+        "Launch competitive offers targeting protagonist's customers",
+        "Issue subtle comparative messaging (without naming protagonist)",
+        "Publicly differentiate on the specific issue (e.g., safety, ethics)",
+        "Poach protagonist's disaffected employees",
+        "Brief analysts on own company's superior practices",
+        "Support industry-wide standards that implicitly criticise protagonist",
+        "Do nothing — avoid drawing attention to the sector-wide issue"
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "protagonist_org",
+      "to": "print_media",
+      "type": "scrutiny",
+      "strength": 0.9,
+      "description": "Media intensely covering the protagonist; relationship ranges from adversarial to cooperative depending on transparency"
+    },
+    {
+      "from": "print_media",
+      "to": "social_media_public",
+      "type": "amplification",
+      "strength": 0.8,
+      "description": "Print stories are shared and amplified on social media, often with added commentary"
+    },
+    {
+      "from": "social_media_public",
+      "to": "general_public_a",
+      "type": "influence",
+      "strength": 0.75,
+      "description": "Social media shapes public segment A's perception through viral content and peer signals"
+    },
+    {
+      "from": "social_media_public",
+      "to": "general_public_b",
+      "type": "influence",
+      "strength": 0.7,
+      "description": "Social media influences public segment B, though community networks also play a role"
+    },
+    {
+      "from": "print_media",
+      "to": "general_public_a",
+      "type": "information",
+      "strength": 0.8,
+      "description": "Traditional media is a primary information source for this public segment"
+    },
+    {
+      "from": "regulator",
+      "to": "protagonist_org",
+      "type": "oversight",
+      "strength": 0.85,
+      "description": "Regulatory authority with enforcement powers over the protagonist"
+    },
+    {
+      "from": "advocacy_group",
+      "to": "protagonist_org",
+      "type": "adversarial",
+      "strength": 0.8,
+      "description": "Pressure group actively challenging the protagonist's conduct"
+    },
+    {
+      "from": "advocacy_group",
+      "to": "regulator",
+      "type": "lobbying",
+      "strength": 0.6,
+      "description": "Advocacy group pushing regulator to take action"
+    },
+    {
+      "from": "advocacy_group",
+      "to": "print_media",
+      "type": "information_source",
+      "strength": 0.65,
+      "description": "Advocacy group provides media with research, data, and affected individuals for stories"
+    },
+    {
+      "from": "general_public_a",
+      "to": "protagonist_org",
+      "type": "commercial",
+      "strength": 0.7,
+      "description": "Customer segment whose purchasing decisions directly affect the protagonist"
+    },
+    {
+      "from": "general_public_b",
+      "to": "protagonist_org",
+      "type": "stakeholder",
+      "strength": 0.6,
+      "description": "Community stakeholder segment affected by the protagonist's actions"
+    },
+    {
+      "from": "competitor",
+      "to": "protagonist_org",
+      "type": "competitive_rivalry",
+      "strength": 0.65,
+      "description": "Market competitor monitoring the protagonist for exploitable weakness"
+    },
+    {
+      "from": "competitor",
+      "to": "general_public_a",
+      "type": "commercial",
+      "strength": 0.55,
+      "description": "Competitor targeting the same customer segment"
+    },
+    {
+      "from": "regulator",
+      "to": "print_media",
+      "type": "public_communication",
+      "strength": 0.6,
+      "description": "Regulator's public statements are reported by media, shaping the narrative"
+    }
+  ],
+  "prediction_questions": [
+    "Will public sentiment shift positive or negative within the first 20 rounds?",
+    "Which media channel will be the first to break a damaging story?",
+    "Will the regulator open a formal investigation before round 40?",
+    "Will the competitor successfully capture market share from the protagonist?",
+    "Will the advocacy group's campaign gain mainstream traction?",
+    "Will the protagonist's initial response strategy succeed or require revision?",
+    "Will social media sentiment peak negative within the first 10 rounds or build slowly?",
+    "Will any actor form an unexpected alliance?"
+  ]
+}

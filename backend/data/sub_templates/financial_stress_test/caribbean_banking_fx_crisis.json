@@ -1,0 +1,588 @@
+{
+  "id": "caribbean_banking_fx_crisis",
+  "simulation_type": "financial_stress_test",
+  "name": "Caribbean Banking FX Crisis — Trinidad & Tobago",
+  "tagline": "Simulate an FX liquidity crisis in T&T's banking system with USD shortages, capital flight, and CBTT intervention.",
+  "region": "Caribbean",
+  "country": "Trinidad and Tobago",
+  "currency": "TTD",
+  "version": "1.0.0",
+  "environment_variables": {
+    "shock_type": "fx_crisis",
+    "shock_severity": "severe",
+    "banking_system_health": "adequate",
+    "fx_reserve_adequacy": "low",
+    "fiscal_space": "limited",
+    "contagion_channel": "fx"
+  },
+  "scenario_description": "Trinidad and Tobago faces a sharp decline in energy revenues following a sustained drop in natural gas and crude oil prices. The resulting USD shortage triggers a widening parallel FX market premium, corporate hoarding of USD, and growing depositor anxiety. The CBTT must balance its managed float regime against dwindling reserves, while the banking sector faces asset quality deterioration in energy-exposed portfolios. The IMF is monitoring but has not yet been formally engaged.",
+  "actors": [
+    {
+      "id": "cbtt",
+      "name": "Central Bank of Trinidad and Tobago (CBTT)",
+      "role": "central_bank",
+      "actor_type": "institutional",
+      "description": "The monetary authority responsible for price stability, FX management, and financial system oversight. Operates a managed float for the TTD. Holds approximately USD 6.3 billion in net official reserves (declining). Must balance inflation targeting with FX market stability and political pressure to maintain the exchange rate.",
+      "personality_traits": {
+        "rationality": 0.82,
+        "risk_tolerance": 0.25,
+        "adaptability": 0.45,
+        "assertiveness": 0.7,
+        "transparency": 0.55
+      },
+      "nash_prior_weight": 0.8,
+      "objectives": [
+        "Maintain orderly FX market conditions and defend the managed float",
+        "Preserve adequate foreign reserve coverage (target: 8+ months of imports)",
+        "Ensure financial system stability and prevent bank runs",
+        "Contain inflation expectations within 2-6% target band"
+      ],
+      "constraints": [
+        "Reserves declining at USD 150-200M per quarter",
+        "Political pressure to avoid formal devaluation",
+        "Limited monetary policy transmission in a small open economy",
+        "Must maintain confidence of international rating agencies"
+      ],
+      "available_actions": [
+        "Adjust repo rate (currently 3.50%)",
+        "Intervene in FX market via USD sales to authorised dealers",
+        "Impose or tighten FX surrender requirements on energy companies",
+        "Issue moral suasion to banks on USD allocation priorities",
+        "Activate emergency liquidity assistance facility",
+        "Tighten prudential requirements on FX-exposed lending",
+        "Coordinate with Ministry of Finance on fiscal response",
+        "Engage IMF for technical assistance or precautionary facility"
+      ]
+    },
+    {
+      "id": "republic_bank",
+      "name": "Republic Bank Limited",
+      "role": "systemic_bank",
+      "actor_type": "corporate",
+      "description": "The largest commercial bank in T&T by assets (approx. TT$70B), with significant regional operations across the Caribbean. Dominant market share in corporate and retail banking. Energy sector exposure through project finance and corporate lending. Listed on the Trinidad and Tobago Stock Exchange (TTSE). Conservative risk culture with strong capital buffers (CAR ~18%).",
+      "personality_traits": {
+        "rationality": 0.65,
+        "risk_tolerance": 0.3,
+        "adaptability": 0.4,
+        "assertiveness": 0.6,
+        "transparency": 0.5
+      },
+      "nash_prior_weight": 0.6,
+      "objectives": [
+        "Maintain profitability and shareholder returns (target ROE 15%+)",
+        "Preserve USD liquidity for trade finance obligations",
+        "Protect asset quality — limit NPL ratio below 4%",
+        "Retain corporate depositors and prevent large-scale USD withdrawals"
+      ],
+      "constraints": [
+        "Energy sector loan book represents ~22% of total lending",
+        "USD liquidity depends on CBTT allocation and energy company flows",
+        "Regional subsidiaries require USD capital support",
+        "Reputation risk from perceived preferential USD allocation"
+      ],
+      "available_actions": [
+        "Tighten USD credit lines to non-essential importers",
+        "Increase TTD deposit rates to attract local currency funding",
+        "Accelerate provisioning on energy-exposed loans",
+        "Lobby CBTT for preferential USD allocation as systemic bank",
+        "Reduce regional subsidiary capital deployment",
+        "Offer structured FX products to corporate clients",
+        "Engage in informal parallel market to source USD (reputational risk)",
+        "Issue public confidence statements to retail depositors"
+      ]
+    },
+    {
+      "id": "first_citizens",
+      "name": "First Citizens Group",
+      "role": "systemic_bank",
+      "actor_type": "corporate",
+      "description": "State-owned financial group (Government of T&T holds ~63% via NIB and Treasury). Second largest bank by assets. Dual mandate: commercial profitability and national development objectives. Significant exposure to government and state enterprise lending. Less conservative than Republic Bank; faster growing but thinner capital buffers (CAR ~15%).",
+      "personality_traits": {
+        "rationality": 0.55,
+        "risk_tolerance": 0.45,
+        "adaptability": 0.5,
+        "assertiveness": 0.5,
+        "transparency": 0.4
+      },
+      "nash_prior_weight": 0.55,
+      "objectives": [
+        "Balance commercial returns with government policy objectives",
+        "Maintain competitive position against Republic Bank",
+        "Support government's economic diversification agenda",
+        "Preserve adequate capital ratios despite potential state-directed lending"
+      ],
+      "constraints": [
+        "Government ownership creates implicit pressure for directed lending",
+        "State enterprise exposure (utilities, energy SOEs) is concentrated",
+        "Capital buffers thinner than Republic Bank — less room for shock absorption",
+        "Board composition includes government appointees with policy agendas"
+      ],
+      "available_actions": [
+        "Prioritise USD allocation to government-strategic importers",
+        "Request government capital injection if CAR falls below regulatory minimum",
+        "Tighten credit standards on private sector energy lending",
+        "Coordinate with CBTT on system-wide liquidity support",
+        "Adjust pricing on TTD products to improve net interest margin",
+        "Accelerate digital banking push to reduce operating costs",
+        "Support government bond issuance through primary dealer activities",
+        "Expand SME lending as diversification from energy concentration"
+      ]
+    },
+    {
+      "id": "mof_tt",
+      "name": "Ministry of Finance — Government of T&T",
+      "role": "fiscal_agent",
+      "actor_type": "government",
+      "description": "The fiscal authority managing government revenue, expenditure, and debt. Energy revenues (petroleum levy, supplemental petroleum tax, dividends from NGC/Petrotrin successor) historically fund 30-40% of the budget. Heritage and Stabilisation Fund (HSF) holds approximately USD 5.5 billion. Debt-to-GDP ratio ~75%. Must navigate fiscal consolidation while maintaining social stability.",
+      "personality_traits": {
+        "rationality": 0.55,
+        "risk_tolerance": 0.35,
+        "adaptability": 0.4,
+        "assertiveness": 0.6,
+        "transparency": 0.35
+      },
+      "nash_prior_weight": 0.55,
+      "objectives": [
+        "Close fiscal gap created by energy revenue decline",
+        "Avoid drawing down HSF beyond prudent limits",
+        "Maintain sovereign credit rating (currently BBB-/stable)",
+        "Preserve social spending to maintain political stability"
+      ],
+      "constraints": [
+        "Energy revenue shortfall of TT$3-5B annually if prices stay depressed",
+        "HSF withdrawal rules limit annual drawdown to 60% of under-collection",
+        "Public sector wage bill is rigid and politically sensitive",
+        "Upcoming election cycle constrains austerity measures"
+      ],
+      "available_actions": [
+        "Draw on Heritage and Stabilisation Fund within statutory limits",
+        "Issue domestic or international sovereign bonds",
+        "Implement revenue-side measures (property tax enforcement, VAT widening)",
+        "Cut capital expenditure programme while protecting social transfers",
+        "Negotiate IMF stand-by arrangement or precautionary credit line",
+        "Lobby energy companies for accelerated tax and royalty payments",
+        "Announce economic diversification programme to signal confidence",
+        "Coordinate fiscal-monetary policy response with CBTT"
+      ]
+    },
+    {
+      "id": "imf_observer",
+      "name": "International Monetary Fund (IMF)",
+      "role": "observer",
+      "actor_type": "multilateral",
+      "description": "Multilateral institution monitoring T&T's macroeconomic stability through Article IV consultations. Has not been formally engaged for a programme but is in regular dialogue with CBTT and MOF. Would impose conditionality (FX regime flexibility, fiscal consolidation, structural reforms) in exchange for any financial support. Caribbean Regional Technical Assistance Centre (CARTAC) provides ongoing technical support.",
+      "personality_traits": {
+        "rationality": 0.88,
+        "risk_tolerance": 0.2,
+        "adaptability": 0.35,
+        "assertiveness": 0.75,
+        "transparency": 0.7
+      },
+      "nash_prior_weight": 0.85,
+      "objectives": [
+        "Promote macroeconomic stability and sustainable growth in T&T",
+        "Advocate for exchange rate flexibility to absorb external shocks",
+        "Encourage fiscal consolidation and energy revenue diversification",
+        "Prevent T&T's situation from creating regional contagion"
+      ],
+      "constraints": [
+        "Cannot intervene without formal government request",
+        "Programme conditionality must follow established frameworks",
+        "Politically sensitive in T&T — IMF programme seen as sovereignty loss",
+        "Must balance T&T-specific advice with Caribbean-wide stability"
+      ],
+      "available_actions": [
+        "Publish Article IV staff report with policy recommendations",
+        "Offer precautionary Flexible Credit Line (FCL) or Stand-By Arrangement",
+        "Provide technical assistance on FX regime modernisation",
+        "Issue public statements on T&T economic outlook",
+        "Coordinate with CDB and IDB on complementary support",
+        "Recommend structural benchmarks (SOE reform, fiscal rules)",
+        "Facilitate debt sustainability analysis if requested",
+        "Engage in confidential policy dialogue with CBTT Governor"
+      ]
+    },
+    {
+      "id": "fintech_vasp",
+      "name": "Fintech & VASP Sector",
+      "role": "amplifier",
+      "actor_type": "collective",
+      "description": "Emerging fintech and virtual asset service provider (VASP) ecosystem in T&T. Includes crypto exchanges, digital payment platforms, and remittance fintechs. During FX crises, these entities amplify parallel market activity by providing alternative USD access channels (USDT/USDC stablecoin trading, cross-border crypto transfers). Small but growing — estimated USD 50-100M in monthly volumes. Regulatory framework under development by CBTT.",
+      "personality_traits": {
+        "rationality": 0.4,
+        "risk_tolerance": 0.8,
+        "adaptability": 0.85,
+        "assertiveness": 0.6,
+        "transparency": 0.25
+      },
+      "nash_prior_weight": 0.35,
+      "objectives": [
+        "Capture market share from traditional banks during FX scarcity",
+        "Profit from widening parallel market premium (spread arbitrage)",
+        "Avoid regulatory crackdown while expanding operations",
+        "Position as legitimate financial infrastructure for post-crisis era"
+      ],
+      "constraints": [
+        "Unregulated or lightly regulated — vulnerable to sudden enforcement",
+        "Dependent on international exchange counterparties for liquidity",
+        "Limited consumer trust outside tech-savvy demographics",
+        "Anti-money-laundering scrutiny could shut down operations"
+      ],
+      "available_actions": [
+        "Increase USDT/USDC trading volumes as parallel FX channel",
+        "Lower fees to attract corporate and retail FX demand",
+        "Lobby for regulatory clarity and licensing framework",
+        "Partner with regional fintechs for cross-border flows",
+        "Self-regulate (KYC/AML compliance) to preempt crackdown",
+        "Launch TTD-backed stablecoin product",
+        "Provide data on parallel market rates that influences expectations",
+        "Attract diaspora remittance flows away from traditional channels"
+      ]
+    },
+    {
+      "id": "financial_media",
+      "name": "Financial Media & Analysts",
+      "role": "amplifier",
+      "actor_type": "collective",
+      "description": "Local and regional financial media (Trinidad Express Business, Guardian Business, CNC3, Loop News), independent economists, and sell-side analysts covering T&T. Their reporting amplifies or dampens depositor confidence and shapes public narrative around the FX situation. International financial press (Bloomberg Caribbean, Reuters) picks up stories that affect sovereign spreads and foreign investor sentiment.",
+      "personality_traits": {
+        "rationality": 0.4,
+        "risk_tolerance": 0.55,
+        "adaptability": 0.7,
+        "assertiveness": 0.65,
+        "transparency": 0.6
+      },
+      "nash_prior_weight": 0.35,
+      "objectives": [
+        "Break stories on FX market conditions and policy responses",
+        "Maintain credibility with readership through accurate reporting",
+        "Drive engagement through compelling crisis narrative",
+        "Hold institutions accountable for policy decisions"
+      ],
+      "constraints": [
+        "Access to official data is limited and delayed",
+        "Small market — advertising revenue ties to corporate sector goodwill",
+        "International outlets amplify local stories unpredictably",
+        "Rumour and speculation fill gaps left by official silence"
+      ],
+      "available_actions": [
+        "Report on parallel market FX rates and spreads",
+        "Interview economists and analysts on policy options",
+        "Publish investigative pieces on USD allocation patterns",
+        "Amplify IMF statements and rating agency reports",
+        "Cover depositor behaviour and bank queue reports",
+        "Platform opposition criticism of government FX policy",
+        "Report corporate earnings that reveal FX impact",
+        "Track and publish CBTT reserve data and trends"
+      ]
+    },
+    {
+      "id": "retail_depositors",
+      "name": "Retail Depositor Segment",
+      "role": "depositor_segment",
+      "actor_type": "collective",
+      "description": "Approximately 800,000 retail deposit accounts across the T&T banking system. Collectively hold TT$60B+ in savings and fixed deposits. Behaviour driven by confidence signals, media reports, and word-of-mouth. During FX stress, depositors attempt to convert TTD savings to USD, creating additional FX demand pressure. Historical memory of 1980s and 2015 FX shortages influences behaviour.",
+      "personality_traits": {
+        "rationality": 0.15,
+        "risk_tolerance": 0.2,
+        "adaptability": 0.3,
+        "assertiveness": 0.35,
+        "transparency": 0.1
+      },
+      "nash_prior_weight": 0.15,
+      "objectives": [
+        "Preserve purchasing power of savings against TTD depreciation",
+        "Secure USD for travel, education, medical, and import needs",
+        "Avoid being caught in a bank failure or deposit freeze",
+        "Maintain access to banking services without excessive queuing"
+      ],
+      "constraints": [
+        "Limited financial sophistication — rely on media and social signals",
+        "USD purchase limits imposed by banks (typically USD 200-500/month retail)",
+        "Cannot easily access parallel market or crypto channels",
+        "Savings concentrated in TTD — limited natural hedge"
+      ],
+      "available_actions": [
+        "Queue at banks for USD allocation on available days",
+        "Move deposits to perceived safer institutions",
+        "Increase cash holdings (de-banking behaviour)",
+        "Purchase durable goods as inflation hedge",
+        "Seek USD through informal parallel market contacts",
+        "Reduce discretionary spending in anticipation of crisis",
+        "Spread rumours and information through social networks",
+        "Petition government representatives for relief"
+      ]
+    },
+    {
+      "id": "corporate_depositors",
+      "name": "Corporate & Institutional Depositors",
+      "role": "depositor_segment",
+      "actor_type": "collective",
+      "description": "Large corporate and institutional depositors including importers, manufacturers, multinational subsidiaries, and pension funds. Hold significant TTD and USD balances. Importers face acute USD shortage for trade finance. Multinationals seek to repatriate dividends. Pension funds face asset-liability mismatch if TTD depreciates. More sophisticated than retail but equally anxious.",
+      "personality_traits": {
+        "rationality": 0.55,
+        "risk_tolerance": 0.35,
+        "adaptability": 0.5,
+        "assertiveness": 0.65,
+        "transparency": 0.3
+      },
+      "nash_prior_weight": 0.5,
+      "objectives": [
+        "Secure USD for import payments and prevent supply chain disruption",
+        "Hedge TTD exposure through available instruments",
+        "Maintain banking relationships that ensure priority USD access",
+        "Protect real value of pension and investment portfolios"
+      ],
+      "constraints": [
+        "Import-dependent businesses face immediate operational risk without USD",
+        "Forward FX market in T&T is thin — limited hedging options",
+        "Large USD requests trigger CBTT scrutiny and allocation queues",
+        "Pension fund investment guidelines restrict offshore allocation"
+      ],
+      "available_actions": [
+        "Negotiate priority USD allocation with relationship bank",
+        "Reduce import volumes or switch to regional suppliers",
+        "Delay dividend repatriation to reduce FX demand",
+        "Lobby CBTT and MOF through business associations (TTMA, TTCIC)",
+        "Build USD inventory when available (hoarding behaviour)",
+        "Explore alternative trade finance (letters of credit, supplier credit)",
+        "Shift pension allocations toward USD-earning equities on TTSE",
+        "Publicly or privately pressure government for policy clarity"
+      ]
+    },
+    {
+      "id": "foreign_investors",
+      "name": "Foreign Portfolio Investors",
+      "role": "foreign_investor",
+      "actor_type": "collective",
+      "description": "International institutional investors holding T&T government bonds (sovereign and quasi-sovereign), TTSE-listed equities, and corporate bonds. Estimated foreign holdings of ~USD 2B in government securities. Sensitive to credit rating changes, FX regime shifts, and capital control signals. Flight risk is the primary systemic concern — sudden outflow would exhaust CBTT reserves.",
+      "personality_traits": {
+        "rationality": 0.7,
+        "risk_tolerance": 0.4,
+        "adaptability": 0.65,
+        "assertiveness": 0.55,
+        "transparency": 0.45
+      },
+      "nash_prior_weight": 0.65,
+      "objectives": [
+        "Protect USD-denominated returns on T&T portfolio",
+        "Maintain ability to repatriate capital without FX losses",
+        "Avoid being trapped by capital controls or FX rationing",
+        "Reassess T&T allocation relative to regional alternatives"
+      ],
+      "constraints": [
+        "Exit requires USD liquidity that CBTT may not provide at scale",
+        "Fire-sale of TTD bonds would depress prices and crystalise losses",
+        "Reputational risk of being seen to trigger a crisis by exiting",
+        "Investment mandate may restrict rapid reallocation"
+      ],
+      "available_actions": [
+        "Maintain current positions and monitor developments",
+        "Gradually reduce T&T exposure through secondary market sales",
+        "Request CBTT USD allocation for bond maturity repatriation",
+        "Engage rating agencies to flag concerns about FX regime",
+        "Shift new allocations to other Caribbean or EM sovereigns",
+        "Hedge TTD exposure through offshore NDF market if available",
+        "Privately lobby CBTT Governor for repatriation assurances",
+        "Publish research notes that influence international sentiment"
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "cbtt",
+      "to": "republic_bank",
+      "type": "regulatory_authority",
+      "strength": 0.95,
+      "description": "CBTT is the prudential regulator and lender of last resort for Republic Bank"
+    },
+    {
+      "from": "cbtt",
+      "to": "first_citizens",
+      "type": "regulatory_authority",
+      "strength": 0.92,
+      "description": "CBTT regulates First Citizens; state ownership adds a political dimension"
+    },
+    {
+      "from": "cbtt",
+      "to": "mof_tt",
+      "type": "policy_coordination",
+      "strength": 0.85,
+      "description": "Fiscal-monetary policy coordination; CBTT is operationally independent but politically linked"
+    },
+    {
+      "from": "republic_bank",
+      "to": "first_citizens",
+      "type": "interbank_exposure",
+      "strength": 0.75,
+      "description": "Interbank lending, payment system linkages, and competitive rivalry"
+    },
+    {
+      "from": "republic_bank",
+      "to": "retail_depositors",
+      "type": "service_provider",
+      "strength": 0.85,
+      "description": "Primary banking relationship for ~40% of retail depositors"
+    },
+    {
+      "from": "republic_bank",
+      "to": "corporate_depositors",
+      "type": "service_provider",
+      "strength": 0.88,
+      "description": "Dominant corporate banking franchise with deepest USD allocation pool"
+    },
+    {
+      "from": "first_citizens",
+      "to": "retail_depositors",
+      "type": "service_provider",
+      "strength": 0.78,
+      "description": "Second-largest retail banking franchise; perceived government backing provides confidence"
+    },
+    {
+      "from": "first_citizens",
+      "to": "corporate_depositors",
+      "type": "service_provider",
+      "strength": 0.72,
+      "description": "Growing corporate franchise, particularly with government-linked enterprises"
+    },
+    {
+      "from": "mof_tt",
+      "to": "first_citizens",
+      "type": "ownership",
+      "strength": 0.9,
+      "description": "Government is majority shareholder; can direct strategy through board appointments"
+    },
+    {
+      "from": "mof_tt",
+      "to": "cbtt",
+      "type": "policy_coordination",
+      "strength": 0.8,
+      "description": "MOF appoints CBTT Governor; fiscal needs create implicit pressure on monetary policy"
+    },
+    {
+      "from": "imf_observer",
+      "to": "cbtt",
+      "type": "advisory",
+      "strength": 0.7,
+      "description": "Regular Article IV dialogue; IMF provides technical assistance and policy advice"
+    },
+    {
+      "from": "imf_observer",
+      "to": "mof_tt",
+      "type": "advisory",
+      "strength": 0.65,
+      "description": "Fiscal surveillance and debt sustainability monitoring"
+    },
+    {
+      "from": "fintech_vasp",
+      "to": "retail_depositors",
+      "type": "alternative_channel",
+      "strength": 0.4,
+      "description": "Emerging alternative for FX access; low trust but growing during scarcity"
+    },
+    {
+      "from": "fintech_vasp",
+      "to": "cbtt",
+      "type": "regulatory_tension",
+      "strength": 0.55,
+      "description": "Unregulated entities creating parallel FX channels; CBTT considering crackdown"
+    },
+    {
+      "from": "financial_media",
+      "to": "retail_depositors",
+      "type": "information_channel",
+      "strength": 0.82,
+      "description": "Primary source of information shaping depositor confidence and behaviour"
+    },
+    {
+      "from": "financial_media",
+      "to": "corporate_depositors",
+      "type": "information_channel",
+      "strength": 0.65,
+      "description": "Corporates monitor media but also have direct institutional information channels"
+    },
+    {
+      "from": "financial_media",
+      "to": "foreign_investors",
+      "type": "information_channel",
+      "strength": 0.6,
+      "description": "International media pickup of local stories influences foreign investor sentiment"
+    },
+    {
+      "from": "foreign_investors",
+      "to": "cbtt",
+      "type": "market_pressure",
+      "strength": 0.7,
+      "description": "Foreign investor repatriation requests create direct FX demand on CBTT reserves"
+    },
+    {
+      "from": "foreign_investors",
+      "to": "republic_bank",
+      "type": "portfolio_allocation",
+      "strength": 0.55,
+      "description": "Foreign investors hold Republic Bank equity and use it as local custodian"
+    },
+    {
+      "from": "corporate_depositors",
+      "to": "cbtt",
+      "type": "lobbying",
+      "strength": 0.6,
+      "description": "Business associations lobby CBTT for improved USD allocation mechanisms"
+    },
+    {
+      "from": "retail_depositors",
+      "to": "fintech_vasp",
+      "type": "alternative_seeking",
+      "strength": 0.35,
+      "description": "Some retail depositors explore fintech/crypto as alternative USD access; mostly tech-savvy younger cohort"
+    }
+  ],
+  "initial_conditions": {
+    "ttd_usd_official_rate": 6.78,
+    "ttd_usd_parallel_rate": 7.50,
+    "cbtt_net_reserves_usd_bn": 6.3,
+    "hsf_balance_usd_bn": 5.5,
+    "repo_rate_pct": 3.5,
+    "inflation_yoy_pct": 4.2,
+    "energy_revenue_decline_pct": 35,
+    "debt_to_gdp_pct": 75,
+    "banking_system_car_pct": 17.2,
+    "npl_ratio_pct": 3.8,
+    "sovereign_rating": "BBB-/stable"
+  },
+  "shock_scenario": {
+    "trigger": "Natural gas prices fall below USD 2.00/MMBtu for a sustained period, causing NGC to cut supply contracts and energy company tax payments to collapse. Simultaneously, a major refinery maintenance shutdown reduces crude export volumes.",
+    "timeline": [
+      {
+        "round_range": [1, 10],
+        "phase": "Onset",
+        "description": "USD scarcity becomes visible. Parallel market premium widens from 10% to 15%. Corporate importers begin queuing for USD. CBTT increases FX market interventions."
+      },
+      {
+        "round_range": [11, 25],
+        "phase": "Escalation",
+        "description": "Media reports on USD shortage go viral. Retail depositors begin queuing at banks. Fintech/VASP volumes spike. Rating agency places T&T on negative watch. Foreign investors begin reducing exposure."
+      },
+      {
+        "round_range": [26, 40],
+        "phase": "Peak Stress",
+        "description": "Parallel rate exceeds 8.50 TTD/USD. CBTT reserves fall below 5 months of import cover. MOF considers HSF drawdown and IMF engagement. First Citizens requires capital support discussions."
+      },
+      {
+        "round_range": [41, 60],
+        "phase": "Resolution Pathway",
+        "description": "Policy response crystallises: either managed devaluation with IMF support, or muddling through with tighter controls. Banking system stress peaks and begins to resolve or deepen."
+      }
+    ]
+  },
+  "prediction_questions": [
+    "Will the CBTT formally adjust the TTD/USD rate within the simulation period?",
+    "Will CBTT net reserves fall below USD 4 billion?",
+    "Will the Government draw on the Heritage and Stabilisation Fund?",
+    "Will any bank require emergency liquidity assistance from CBTT?",
+    "Will the sovereign credit rating be downgraded?",
+    "Will the Government formally engage the IMF for a programme?",
+    "Will the parallel market premium exceed 25%?",
+    "Will corporate import disruptions cause visible shortages in retail goods?"
+  ]
+}

@@ -1,0 +1,508 @@
+{
+  "simulation_type": "financial_stress_test",
+  "version": "1.0.0",
+  "name": "REPLACE: Descriptive name for this financial stress test (e.g., 'Emerging Market FX Crisis Stress Test')",
+  "description": "REPLACE: 2-3 sentence description of the economy, its financial system, and the shock scenario being tested.",
+  "environment_variables": {
+    "shock_type": "fx_crisis",
+    "shock_severity": "moderate",
+    "banking_system_health": "adequate",
+    "fx_reserve_adequacy": "adequate",
+    "fiscal_space": "moderate",
+    "contagion_channel": "confidence"
+  },
+  "rounds": 60,
+  "actors": [
+    {
+      "id": "central_bank",
+      "name": "REPLACE: Name of the central bank (e.g., 'Central Bank of XYZ')",
+      "role": "central_bank",
+      "actor_type": "institutional",
+      "description": "REPLACE: The monetary authority — its mandate (inflation targeting, exchange rate management, financial stability), key policy instruments, and current policy stance.",
+      "personality_traits": {
+        "rationality": 0.8,
+        "risk_tolerance": 0.25,
+        "adaptability": 0.4,
+        "assertiveness": 0.7,
+        "transparency": 0.55
+      },
+      "nash_prior_weight": 0.8,
+      "objectives": [
+        "Maintain price stability within target band",
+        "Ensure financial system stability and prevent systemic failures",
+        "REPLACE: Exchange rate objective (e.g., 'Defend managed float' or 'Allow orderly adjustment')",
+        "Preserve adequate foreign reserve coverage"
+      ],
+      "constraints": [
+        "REPLACE: Key policy constraint (e.g., 'Inflation already above target limits rate cut room')",
+        "REPLACE: Reserve constraint (e.g., 'Net reserves provide X months of import cover')",
+        "Political pressure may conflict with optimal monetary policy",
+        "Transmission mechanism weakened by dollarisation or informal economy"
+      ],
+      "available_actions": [
+        "Adjust policy interest rate (raise, hold, or cut)",
+        "Intervene in foreign exchange market (sell or buy reserves)",
+        "Adjust reserve requirements for commercial banks",
+        "Activate emergency liquidity assistance facility",
+        "Tighten or loosen macro-prudential regulations",
+        "Issue forward guidance to manage market expectations",
+        "Coordinate fiscal-monetary policy with government",
+        "Engage international institutions for technical or financial support",
+        "Impose or relax capital flow management measures",
+        "Conduct stress tests and publish results"
+      ]
+    },
+    {
+      "id": "systemic_bank_a",
+      "name": "REPLACE: Name of the largest commercial bank",
+      "role": "systemic_bank",
+      "actor_type": "corporate",
+      "description": "REPLACE: Profile of the dominant bank — asset size, market share, capital adequacy, asset quality, and key exposures (sector, FX, sovereign).",
+      "personality_traits": {
+        "rationality": 0.6,
+        "risk_tolerance": 0.3,
+        "adaptability": 0.4,
+        "assertiveness": 0.6,
+        "transparency": 0.45
+      },
+      "nash_prior_weight": 0.6,
+      "objectives": [
+        "Maintain profitability and shareholder returns",
+        "Preserve capital ratios above regulatory minimums",
+        "REPLACE: Bank-specific strategic objective",
+        "Retain depositor and creditor confidence"
+      ],
+      "constraints": [
+        "REPLACE: Asset quality concern (e.g., 'NPL ratio rising in sector X exposure')",
+        "REPLACE: Liquidity constraint (e.g., 'FX liquidity dependent on central bank allocation')",
+        "Interbank exposures create contagion risk from peer failures",
+        "Regulatory requirements limit balance sheet flexibility"
+      ],
+      "available_actions": [
+        "Tighten credit standards and reduce new lending",
+        "Increase deposit rates to attract funding",
+        "Sell liquid assets to raise cash buffers",
+        "Request central bank liquidity support",
+        "Accelerate provisioning on deteriorating loan book",
+        "Reduce foreign currency lending exposure",
+        "Issue public confidence statement to depositors",
+        "Negotiate with large depositors for term extension",
+        "Reduce dividend to preserve capital",
+        "Seek strategic investor or capital injection"
+      ]
+    },
+    {
+      "id": "systemic_bank_b",
+      "name": "REPLACE: Name of the second-largest bank or a bank with distinct risk profile",
+      "role": "systemic_bank",
+      "actor_type": "corporate",
+      "description": "REPLACE: Profile of a second major bank — how it differs from bank A in terms of ownership (state-owned? foreign-owned?), risk appetite, and exposures.",
+      "personality_traits": {
+        "rationality": 0.55,
+        "risk_tolerance": 0.4,
+        "adaptability": 0.45,
+        "assertiveness": 0.5,
+        "transparency": 0.4
+      },
+      "nash_prior_weight": 0.55,
+      "objectives": [
+        "REPLACE: Bank B's primary objective (may differ due to ownership structure)",
+        "Maintain competitive position relative to bank A",
+        "Preserve capital and liquidity under stress",
+        "REPLACE: Bank-specific growth or stability objective"
+      ],
+      "constraints": [
+        "REPLACE: Ownership-related constraint (e.g., 'Government ownership creates directed lending pressure')",
+        "REPLACE: Specific vulnerability (e.g., 'Higher concentration in real estate lending')",
+        "Thinner capital buffers than bank A",
+        "Less diversified funding base"
+      ],
+      "available_actions": [
+        "Request government capital injection (if state-owned)",
+        "Tighten credit underwriting standards",
+        "Prioritise FX allocation to strategic sectors",
+        "Coordinate with bank A on interbank market stability",
+        "Accelerate digital cost reduction programme",
+        "Seek parent company support (if foreign-owned)",
+        "Issue subordinated debt to shore up capital",
+        "Merge or acquire weaker peer for scale",
+        "Reduce branch network to cut operating costs",
+        "Negotiate debt restructuring with problem borrowers"
+      ]
+    },
+    {
+      "id": "ministry_of_finance",
+      "name": "REPLACE: Name of the fiscal authority (e.g., 'Ministry of Finance and Planning')",
+      "role": "fiscal_agent",
+      "actor_type": "government",
+      "description": "REPLACE: The government's fiscal authority — budget position, debt levels, revenue dependence on any single source, and political constraints.",
+      "personality_traits": {
+        "rationality": 0.55,
+        "risk_tolerance": 0.35,
+        "adaptability": 0.4,
+        "assertiveness": 0.6,
+        "transparency": 0.35
+      },
+      "nash_prior_weight": 0.55,
+      "objectives": [
+        "Maintain fiscal sustainability and debt serviceability",
+        "REPLACE: Revenue objective (e.g., 'Close fiscal gap from commodity revenue decline')",
+        "Preserve sovereign credit rating",
+        "Maintain social stability through continued public spending"
+      ],
+      "constraints": [
+        "REPLACE: Revenue constraint (e.g., 'Commodity revenues declining X%')",
+        "REPLACE: Debt constraint (e.g., 'Debt-to-GDP at X%, approaching sustainability threshold')",
+        "Election cycle limits politically difficult measures",
+        "Public sector wage bill is rigid and large"
+      ],
+      "available_actions": [
+        "Draw on sovereign wealth or stabilisation fund",
+        "Issue domestic government bonds to fund deficit",
+        "Issue international sovereign bonds (if market access exists)",
+        "Implement revenue measures (tax increases, base broadening)",
+        "Cut capital expenditure while protecting social transfers",
+        "Negotiate with IMF for programme or precautionary facility",
+        "Announce economic reform programme to signal commitment",
+        "Provide fiscal backstop to banking system if needed",
+        "Restructure or extend public debt maturities",
+        "Coordinate fiscal response with central bank monetary policy"
+      ]
+    },
+    {
+      "id": "retail_depositors",
+      "name": "Retail Depositor Segment",
+      "role": "depositor_segment",
+      "actor_type": "collective",
+      "description": "REPLACE: Profile of retail depositors — aggregate deposit size, financial literacy, historical experience with banking crises, and information sources.",
+      "personality_traits": {
+        "rationality": 0.15,
+        "risk_tolerance": 0.2,
+        "adaptability": 0.3,
+        "assertiveness": 0.35,
+        "transparency": 0.1
+      },
+      "nash_prior_weight": 0.15,
+      "objectives": [
+        "Preserve real value of savings",
+        "Maintain access to banking services and liquidity",
+        "Protect against currency depreciation",
+        "Avoid being caught in a bank failure"
+      ],
+      "constraints": [
+        "Limited financial sophistication — rely on media signals and herd behaviour",
+        "FX purchase limits restrict ability to hedge currency risk",
+        "Deposit insurance may be absent, limited, or not trusted",
+        "Concentrated savings in domestic currency with no natural hedge"
+      ],
+      "available_actions": [
+        "Maintain deposits at current bank (status quo)",
+        "Move deposits to perceived safer bank",
+        "Convert savings to foreign currency at official rate (if available)",
+        "Convert savings via parallel market or informal channels",
+        "Withdraw cash and hold outside banking system",
+        "Purchase durable goods or real estate as inflation hedge",
+        "Reduce discretionary spending in anticipation of crisis",
+        "Queue at banks for FX allocation",
+        "Spread information and rumours through social networks"
+      ]
+    },
+    {
+      "id": "institutional_depositors",
+      "name": "REPLACE: Name for institutional depositor segment (e.g., 'Corporate Treasurers & Pension Funds')",
+      "role": "depositor_segment",
+      "actor_type": "collective",
+      "description": "REPLACE: Profile of large institutional depositors — pension funds, insurers, corporate treasuries. Their FX needs, hedging sophistication, and panic threshold.",
+      "personality_traits": {
+        "rationality": 0.55,
+        "risk_tolerance": 0.35,
+        "adaptability": 0.5,
+        "assertiveness": 0.6,
+        "transparency": 0.3
+      },
+      "nash_prior_weight": 0.5,
+      "objectives": [
+        "Protect portfolio value and meet fiduciary obligations",
+        "Secure FX for trade finance and operational needs",
+        "Hedge exposure to currency and interest rate movements",
+        "Maintain business continuity despite financial market stress"
+      ],
+      "constraints": [
+        "Investment mandates and regulations limit portfolio flexibility",
+        "FX hedging instruments may be thin or unavailable in local market",
+        "Large transactions attract regulatory attention and allocation queues",
+        "Counterparty credit concerns limit interbank and repo activity"
+      ],
+      "available_actions": [
+        "Negotiate priority FX allocation with relationship banks",
+        "Reduce import volumes or defer discretionary FX payments",
+        "Shift portfolio allocation toward foreign-currency-earning assets",
+        "Lobby central bank and government through industry associations",
+        "Hoard FX when available (precautionary behaviour)",
+        "Seek offshore hedging through NDF market",
+        "Delay dividend repatriation to reduce FX demand",
+        "Issue public statements calling for policy clarity"
+      ]
+    },
+    {
+      "id": "foreign_investors",
+      "name": "Foreign Portfolio & Direct Investors",
+      "role": "foreign_investor",
+      "actor_type": "collective",
+      "description": "REPLACE: Profile of foreign investors — estimated holdings (government bonds, equities, FDI), sensitivity to credit rating changes, and flight triggers.",
+      "personality_traits": {
+        "rationality": 0.7,
+        "risk_tolerance": 0.4,
+        "adaptability": 0.65,
+        "assertiveness": 0.55,
+        "transparency": 0.45
+      },
+      "nash_prior_weight": 0.65,
+      "objectives": [
+        "Protect USD-denominated returns on country portfolio",
+        "Maintain ability to repatriate capital without restrictions",
+        "Avoid being trapped by capital controls or FX rationing",
+        "Reassess country allocation relative to peer alternatives"
+      ],
+      "constraints": [
+        "Exit requires central bank FX liquidity that may not be available at scale",
+        "Fire-sale of domestic bonds depresses prices and crystalises losses",
+        "Investment mandate may restrict rapid reallocation",
+        "Reputational risk of being seen to trigger or worsen a crisis"
+      ],
+      "available_actions": [
+        "Maintain current positions and monitor developments",
+        "Gradually reduce exposure through secondary market sales",
+        "Request FX allocation for bond maturity repatriation",
+        "Engage credit rating agencies to flag sovereign concerns",
+        "Shift new allocations to alternative emerging markets",
+        "Hedge country exposure through offshore instruments",
+        "Lobby central bank governor for repatriation assurances",
+        "Publish research notes that influence international sentiment"
+      ]
+    },
+    {
+      "id": "imf_multilateral",
+      "name": "REPLACE: Name of relevant multilateral (e.g., 'International Monetary Fund')",
+      "role": "observer",
+      "actor_type": "multilateral",
+      "description": "REPLACE: The relevant international financial institution — its relationship with the country, prior programme history, and likely conditionality framework.",
+      "personality_traits": {
+        "rationality": 0.88,
+        "risk_tolerance": 0.2,
+        "adaptability": 0.35,
+        "assertiveness": 0.75,
+        "transparency": 0.7
+      },
+      "nash_prior_weight": 0.85,
+      "objectives": [
+        "Promote macroeconomic stability and sustainable growth",
+        "Advocate for policy reforms that address structural vulnerabilities",
+        "Prevent contagion to regional neighbours",
+        "Maintain institutional credibility through consistent conditionality"
+      ],
+      "constraints": [
+        "Cannot intervene without formal government request",
+        "Programme conditionality must follow established frameworks",
+        "Political sensitivity in borrowing country — IMF stigma",
+        "Must coordinate with other multilaterals and bilateral creditors"
+      ],
+      "available_actions": [
+        "Publish Article IV staff report with policy recommendations",
+        "Offer precautionary credit line or stand-by arrangement",
+        "Provide technical assistance on FX regime, fiscal framework, or bank supervision",
+        "Issue public or private statements on country outlook",
+        "Coordinate with regional development banks on complementary support",
+        "Recommend structural benchmarks as programme conditionality",
+        "Facilitate debt sustainability analysis",
+        "Engage in confidential policy dialogue with authorities"
+      ]
+    },
+    {
+      "id": "credit_rating_agency",
+      "name": "International Credit Rating Agencies",
+      "role": "amplifier",
+      "actor_type": "collective",
+      "description": "The major credit rating agencies (S&P, Moody's, Fitch) that assess the sovereign and bank credit quality. Their actions directly affect foreign investor behaviour, sovereign borrowing costs, and public confidence. Tend to be lagging indicators but their announcements create step-change market reactions.",
+      "personality_traits": {
+        "rationality": 0.75,
+        "risk_tolerance": 0.15,
+        "adaptability": 0.3,
+        "assertiveness": 0.65,
+        "transparency": 0.7
+      },
+      "nash_prior_weight": 0.75,
+      "objectives": [
+        "Maintain analytical credibility through accurate and timely assessments",
+        "Provide early warning of deteriorating creditworthiness",
+        "Balance responsiveness with stability (avoid pro-cyclical rating volatility)",
+        "Comply with regulatory expectations for rating methodology"
+      ],
+      "constraints": [
+        "Rating methodology creates inertia — changes require formal committee process",
+        "Criticism for being either too slow (late to downgrade) or too fast (triggering crises)",
+        "Access to confidential data depends on cooperation of rated entities",
+        "Must maintain independence from rated sovereign and bank interests"
+      ],
+      "available_actions": [
+        "Affirm current rating with stable outlook",
+        "Place rating on negative watch (review for downgrade)",
+        "Downgrade sovereign or bank rating by one or more notches",
+        "Change outlook from stable to negative without rating change",
+        "Publish special commentary on emerging risks",
+        "Upgrade outlook if policy response is credible",
+        "Initiate unsolicited review of bank ratings",
+        "Engage in dialogue with authorities to assess policy credibility"
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "central_bank",
+      "to": "systemic_bank_a",
+      "type": "regulatory_authority",
+      "strength": 0.95,
+      "description": "Central bank is the prudential regulator and lender of last resort"
+    },
+    {
+      "from": "central_bank",
+      "to": "systemic_bank_b",
+      "type": "regulatory_authority",
+      "strength": 0.92,
+      "description": "Regulatory oversight; ownership structure may add political dimension"
+    },
+    {
+      "from": "central_bank",
+      "to": "ministry_of_finance",
+      "type": "policy_coordination",
+      "strength": 0.85,
+      "description": "Fiscal-monetary policy coordination; operational independence varies by jurisdiction"
+    },
+    {
+      "from": "systemic_bank_a",
+      "to": "systemic_bank_b",
+      "type": "interbank_exposure",
+      "strength": 0.78,
+      "description": "Interbank lending, payment system linkages, and competitive dynamics"
+    },
+    {
+      "from": "systemic_bank_a",
+      "to": "retail_depositors",
+      "type": "service_provider",
+      "strength": 0.85,
+      "description": "Primary banking relationship for large share of retail depositors"
+    },
+    {
+      "from": "systemic_bank_a",
+      "to": "institutional_depositors",
+      "type": "service_provider",
+      "strength": 0.8,
+      "description": "Corporate banking and custodian services for institutional clients"
+    },
+    {
+      "from": "systemic_bank_b",
+      "to": "retail_depositors",
+      "type": "service_provider",
+      "strength": 0.75,
+      "description": "Secondary banking franchise; perceived government backing may provide confidence"
+    },
+    {
+      "from": "ministry_of_finance",
+      "to": "central_bank",
+      "type": "political_influence",
+      "strength": 0.7,
+      "description": "Government appoints central bank leadership; fiscal needs create implicit pressure"
+    },
+    {
+      "from": "foreign_investors",
+      "to": "central_bank",
+      "type": "market_pressure",
+      "strength": 0.7,
+      "description": "Foreign investor repatriation demands create direct FX reserve pressure"
+    },
+    {
+      "from": "foreign_investors",
+      "to": "credit_rating_agency",
+      "type": "information_dependency",
+      "strength": 0.75,
+      "description": "Rating actions directly influence foreign investor allocation decisions"
+    },
+    {
+      "from": "credit_rating_agency",
+      "to": "central_bank",
+      "type": "assessment",
+      "strength": 0.65,
+      "description": "Rating agency evaluates central bank policy credibility"
+    },
+    {
+      "from": "credit_rating_agency",
+      "to": "ministry_of_finance",
+      "type": "assessment",
+      "strength": 0.7,
+      "description": "Sovereign rating directly reflects fiscal sustainability assessment"
+    },
+    {
+      "from": "imf_multilateral",
+      "to": "central_bank",
+      "type": "advisory",
+      "strength": 0.7,
+      "description": "Policy surveillance, technical assistance, and potential programme engagement"
+    },
+    {
+      "from": "imf_multilateral",
+      "to": "ministry_of_finance",
+      "type": "advisory",
+      "strength": 0.65,
+      "description": "Fiscal surveillance and debt sustainability monitoring"
+    },
+    {
+      "from": "retail_depositors",
+      "to": "institutional_depositors",
+      "type": "herd_behaviour",
+      "strength": 0.5,
+      "description": "Retail panic can be triggered by institutional withdrawal signals, and vice versa"
+    },
+    {
+      "from": "institutional_depositors",
+      "to": "central_bank",
+      "type": "lobbying",
+      "strength": 0.6,
+      "description": "Corporate sector lobbies central bank for improved FX allocation"
+    }
+  ],
+  "shock_scenario": {
+    "trigger": "REPLACE: Description of the triggering event (e.g., 'Commodity price collapse reduces export revenues by 40%', 'Major trading partner imposes sanctions', 'Largest bank reveals hidden NPL exposure')",
+    "timeline": [
+      {
+        "round_range": [1, 15],
+        "phase": "Onset",
+        "description": "REPLACE: Initial shock manifestation — what becomes visible first and to whom"
+      },
+      {
+        "round_range": [16, 30],
+        "phase": "Escalation",
+        "description": "REPLACE: How stress propagates — contagion channels, confidence erosion, policy response lag"
+      },
+      {
+        "round_range": [31, 45],
+        "phase": "Peak Stress",
+        "description": "REPLACE: Maximum stress scenario — what metrics hit critical thresholds"
+      },
+      {
+        "round_range": [46, 60],
+        "phase": "Resolution Pathway",
+        "description": "REPLACE: How the crisis resolves — policy response crystallises, system stabilises or deepens"
+      }
+    ]
+  },
+  "prediction_questions": [
+    "Will the central bank raise or cut interest rates in response to the shock?",
+    "Will any bank require emergency liquidity assistance?",
+    "Will foreign investor capital outflows exceed available reserves?",
+    "Will the government need to seek IMF assistance?",
+    "Will the sovereign credit rating be downgraded?",
+    "Will the currency depreciate by more than 20% from pre-shock levels?",
+    "Will retail depositor behaviour trigger a bank run?",
+    "Will the banking system's aggregate NPL ratio exceed the stress threshold?"
+  ]
+}

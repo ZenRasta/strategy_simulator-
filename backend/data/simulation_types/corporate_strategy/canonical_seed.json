@@ -1,0 +1,426 @@
+{
+  "simulation_type": "corporate_strategy",
+  "version": "1.0.0",
+  "name": "REPLACE: Descriptive name for this corporate strategy simulation",
+  "description": "REPLACE: 2-3 sentence description of the company, its competitive landscape, and the strategic question being simulated.",
+  "environment_variables": {
+    "market_growth_rate": "moderate",
+    "competitive_intensity": "medium",
+    "regulatory_environment": "moderate",
+    "technology_disruption_risk": "medium",
+    "capital_availability": "moderate"
+  },
+  "rounds": 80,
+  "actors": [
+    {
+      "id": "focal_firm",
+      "name": "REPLACE: Name of the company whose strategy is being simulated",
+      "role": "focal_firm",
+      "actor_type": "corporate",
+      "description": "REPLACE: Company profile — revenue, market share, competitive position, key capabilities, and the strategic decision being evaluated.",
+      "personality_traits": {
+        "rationality": 0.6,
+        "risk_tolerance": 0.45,
+        "adaptability": 0.5,
+        "assertiveness": 0.55,
+        "transparency": 0.4
+      },
+      "nash_prior_weight": 0.55,
+      "objectives": [
+        "REPLACE: Primary strategic objective (e.g., 'Grow market share from 22% to 30% within 3 years')",
+        "REPLACE: Secondary objective (e.g., 'Diversify revenue beyond core segment')",
+        "Maintain or improve profitability margins",
+        "Strengthen competitive moat against existing and new rivals"
+      ],
+      "constraints": [
+        "REPLACE: Capital constraint (e.g., 'Available capex budget of $X for strategic initiatives')",
+        "REPLACE: Organisational constraint (e.g., 'Integration of recent acquisition consuming management attention')",
+        "REPLACE: Market constraint (e.g., 'Regulatory approval required for expansion into adjacent segment')",
+        "Talent market tight in key technical roles"
+      ],
+      "available_actions": [
+        "Invest in organic growth — expand existing product lines or geographies",
+        "Pursue acquisition of competitor or adjacent player",
+        "Launch price war to gain market share",
+        "Increase R&D spending to build technology moat",
+        "Divest underperforming division to fund strategic priorities",
+        "Form strategic partnership or joint venture",
+        "Enter new market segment organically",
+        "Defend current position — optimise operations and cut costs",
+        "Lobby regulator for favourable policy treatment",
+        "Recruit key talent from competitors"
+      ]
+    },
+    {
+      "id": "focal_firm_division_a",
+      "name": "REPLACE: Name of the company's primary business division (e.g., 'Retail Division')",
+      "role": "focal_firm",
+      "actor_type": "corporate_division",
+      "description": "REPLACE: The largest or most strategically important division. Its revenue contribution, growth trajectory, and internal political weight.",
+      "personality_traits": {
+        "rationality": 0.55,
+        "risk_tolerance": 0.4,
+        "adaptability": 0.45,
+        "assertiveness": 0.6,
+        "transparency": 0.35
+      },
+      "nash_prior_weight": 0.5,
+      "objectives": [
+        "REPLACE: Division-specific growth target",
+        "Protect budget allocation within the corporate portfolio",
+        "Maintain operational autonomy from corporate centre",
+        "REPLACE: Division-specific competitive objective"
+      ],
+      "constraints": [
+        "REPLACE: Division-specific resource limitation",
+        "Capital allocation competes with other divisions",
+        "Legacy systems or processes limit speed of change",
+        "Key customer relationships create path dependency"
+      ],
+      "available_actions": [
+        "Propose expansion investment to corporate board",
+        "Optimise existing operations for margin improvement",
+        "Launch competitive counter-move against rival in segment",
+        "Build case for increased budget allocation",
+        "Resist corporate-mandated changes that threaten autonomy",
+        "Collaborate with other divisions on cross-selling",
+        "Invest in customer retention programmes",
+        "Pilot new products or business models within division"
+      ]
+    },
+    {
+      "id": "focal_firm_division_b",
+      "name": "REPLACE: Name of secondary division (e.g., 'Industrial Solutions Division')",
+      "role": "focal_firm",
+      "actor_type": "corporate_division",
+      "description": "REPLACE: A secondary division with different dynamics — perhaps smaller, faster-growing, or in a different competitive position.",
+      "personality_traits": {
+        "rationality": 0.5,
+        "risk_tolerance": 0.55,
+        "adaptability": 0.6,
+        "assertiveness": 0.5,
+        "transparency": 0.35
+      },
+      "nash_prior_weight": 0.48,
+      "objectives": [
+        "REPLACE: Division-specific objective",
+        "Prove strategic value to justify continued investment",
+        "REPLACE: Growth or turnaround objective",
+        "Build capabilities that differentiate from competitors"
+      ],
+      "constraints": [
+        "REPLACE: Division-specific constraint",
+        "Smaller scale means less internal political influence",
+        "May face make-or-break capital allocation decision",
+        "Talent retention challenges if seen as non-core"
+      ],
+      "available_actions": [
+        "Pitch transformational investment to corporate board",
+        "Pursue bolt-on acquisition to accelerate growth",
+        "Form partnership with technology provider for capability leap",
+        "Restructure operations for profitability",
+        "Develop new go-to-market approach",
+        "Request increased headcount for strategic initiative",
+        "Benchmark against best-in-class competitors to build case",
+        "Accept reduced scope and focus on profitable niche"
+      ]
+    },
+    {
+      "id": "competitor_a",
+      "name": "REPLACE: Name of primary competitor",
+      "role": "competitor",
+      "actor_type": "corporate",
+      "description": "REPLACE: The most significant competitor — market share, strategic posture (aggressive/defensive), and known strategic priorities.",
+      "personality_traits": {
+        "rationality": 0.55,
+        "risk_tolerance": 0.5,
+        "adaptability": 0.55,
+        "assertiveness": 0.65,
+        "transparency": 0.3
+      },
+      "nash_prior_weight": 0.55,
+      "objectives": [
+        "REPLACE: Competitor A's primary strategic objective",
+        "Defend or grow market share against the focal firm",
+        "REPLACE: Competitor-specific growth initiative",
+        "Maintain cost leadership or differentiation advantage"
+      ],
+      "constraints": [
+        "REPLACE: Competitor's key weakness or constraint",
+        "REPLACE: Resource or capability limitation",
+        "Must balance offense against focal firm with other competitive threats",
+        "Shareholder expectations for consistent returns"
+      ],
+      "available_actions": [
+        "Launch aggressive pricing to defend market share",
+        "Invest in product innovation to differentiate",
+        "Pursue acquisition to fill capability gap",
+        "Enter new geography or segment ahead of focal firm",
+        "Poach key talent from focal firm",
+        "Form defensive alliance with other competitors",
+        "Lobby regulator to disadvantage focal firm's expansion",
+        "Increase marketing spend to strengthen brand position",
+        "Cut costs and compete on efficiency",
+        "Offer exclusive deals to focal firm's key customers"
+      ]
+    },
+    {
+      "id": "competitor_b",
+      "name": "REPLACE: Name of secondary competitor or emerging rival",
+      "role": "competitor",
+      "actor_type": "corporate",
+      "description": "REPLACE: A secondary competitor or potential disruptor — perhaps smaller but faster-growing, or a new entrant from an adjacent sector.",
+      "personality_traits": {
+        "rationality": 0.45,
+        "risk_tolerance": 0.65,
+        "adaptability": 0.7,
+        "assertiveness": 0.6,
+        "transparency": 0.25
+      },
+      "nash_prior_weight": 0.45,
+      "objectives": [
+        "REPLACE: Competitor B's primary objective (e.g., 'Disrupt the incumbent model with technology-led approach')",
+        "Capture underserved segments ignored by larger players",
+        "Achieve scale before incumbents can respond effectively",
+        "REPLACE: Specific competitive target"
+      ],
+      "constraints": [
+        "REPLACE: Scale limitation",
+        "REPLACE: Funding or resource constraint",
+        "Limited brand recognition compared to established players",
+        "Unproven business model at scale"
+      ],
+      "available_actions": [
+        "Aggressively price to acquire customers",
+        "Launch marketing campaign highlighting innovation advantage",
+        "Seek strategic partnership with larger player for distribution",
+        "Raise capital to fund growth offensive",
+        "Target focal firm's most dissatisfied customers",
+        "Develop proprietary technology as competitive moat",
+        "Expand into adjacent segments before incumbents notice",
+        "Publish thought leadership to build industry credibility"
+      ]
+    },
+    {
+      "id": "regulator",
+      "name": "REPLACE: Name of the primary industry regulator or government body",
+      "role": "regulator",
+      "actor_type": "government",
+      "description": "REPLACE: The regulatory body governing this sector — its mandate, enforcement posture, and current policy direction.",
+      "personality_traits": {
+        "rationality": 0.7,
+        "risk_tolerance": 0.2,
+        "adaptability": 0.3,
+        "assertiveness": 0.6,
+        "transparency": 0.65
+      },
+      "nash_prior_weight": 0.7,
+      "objectives": [
+        "Ensure fair competition and prevent anti-competitive behaviour",
+        "Protect consumer interests and market integrity",
+        "REPLACE: Sector-specific regulatory objective",
+        "Balance innovation encouragement with risk mitigation"
+      ],
+      "constraints": [
+        "Legislative framework may lag market developments",
+        "Political pressure from both industry and consumer advocates",
+        "Limited enforcement resources for complex investigations",
+        "REPLACE: Sector-specific regulatory constraint"
+      ],
+      "available_actions": [
+        "Approve or block proposed mergers and acquisitions",
+        "Issue new regulations or guidelines",
+        "Launch investigation into competitive practices",
+        "Impose fines or corrective orders",
+        "Hold public consultations on policy changes",
+        "Grant or revoke operating licences",
+        "Publish market study or competition assessment",
+        "Coordinate with international regulatory counterparts"
+      ]
+    },
+    {
+      "id": "customer_segment_primary",
+      "name": "REPLACE: Name of primary customer segment (e.g., 'Enterprise Clients')",
+      "role": "customer_segment",
+      "actor_type": "collective",
+      "description": "REPLACE: The most important customer segment for the focal firm — size, purchasing behaviour, loyalty, and price sensitivity.",
+      "personality_traits": {
+        "rationality": 0.35,
+        "risk_tolerance": 0.3,
+        "adaptability": 0.45,
+        "assertiveness": 0.4,
+        "transparency": 0.2
+      },
+      "nash_prior_weight": 0.25,
+      "objectives": [
+        "Obtain best value (price-quality ratio) from providers",
+        "Minimise switching costs and vendor lock-in",
+        "REPLACE: Segment-specific need or objective",
+        "Ensure reliable service continuity"
+      ],
+      "constraints": [
+        "Switching costs create inertia (contracts, integration, habits)",
+        "Limited visibility into provider economics and true alternatives",
+        "REPLACE: Segment-specific purchasing constraint",
+        "Decision-making is distributed and slow in large organisations"
+      ],
+      "available_actions": [
+        "Continue current provider relationship (status quo)",
+        "Issue RFP to explore alternatives",
+        "Negotiate harder on price and terms with current provider",
+        "Switch to competitor partially or fully",
+        "Reduce overall spending in this category",
+        "Demand new features or service levels",
+        "Form buyer coalition for collective bargaining power",
+        "In-source the capability rather than buying externally"
+      ]
+    },
+    {
+      "id": "supplier_key",
+      "name": "REPLACE: Name of key supplier or upstream partner",
+      "role": "supplier",
+      "actor_type": "corporate",
+      "description": "REPLACE: The most strategically important supplier — what they provide, concentration risk, and bargaining power dynamics.",
+      "personality_traits": {
+        "rationality": 0.5,
+        "risk_tolerance": 0.35,
+        "adaptability": 0.4,
+        "assertiveness": 0.55,
+        "transparency": 0.35
+      },
+      "nash_prior_weight": 0.45,
+      "objectives": [
+        "Maximise revenue from focal firm and competitors",
+        "Maintain or increase pricing power",
+        "REPLACE: Supplier-specific strategic objective",
+        "Diversify customer base to reduce concentration risk"
+      ],
+      "constraints": [
+        "REPLACE: Capacity or capability constraint",
+        "Dependent on focal firm for significant revenue share",
+        "Technology cycle requires continuous investment",
+        "Competitive suppliers may undercut on price"
+      ],
+      "available_actions": [
+        "Maintain current terms and relationship",
+        "Increase prices citing cost pressures",
+        "Offer volume discounts for longer-term commitment",
+        "Develop exclusive product for the focal firm",
+        "Supply competitors with equivalent capabilities",
+        "Vertically integrate and compete directly",
+        "Form strategic partnership with focal firm",
+        "Reduce service levels to less profitable customers"
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "focal_firm",
+      "to": "competitor_a",
+      "type": "competitive_rivalry",
+      "strength": 0.85,
+      "description": "Intense competitive awareness; each monitors the other's moves closely"
+    },
+    {
+      "from": "focal_firm",
+      "to": "competitor_b",
+      "type": "competitive_rivalry",
+      "strength": 0.6,
+      "description": "Emerging competitive threat; focal firm may underestimate this player"
+    },
+    {
+      "from": "focal_firm",
+      "to": "customer_segment_primary",
+      "type": "commercial",
+      "strength": 0.75,
+      "description": "Core revenue relationship; customer loyalty is the key strategic asset"
+    },
+    {
+      "from": "competitor_a",
+      "to": "customer_segment_primary",
+      "type": "commercial",
+      "strength": 0.7,
+      "description": "Competitor A also serves this segment; overlap creates switching opportunity"
+    },
+    {
+      "from": "competitor_b",
+      "to": "customer_segment_primary",
+      "type": "commercial",
+      "strength": 0.45,
+      "description": "Emerging competitor targeting the segment with differentiated offering"
+    },
+    {
+      "from": "regulator",
+      "to": "focal_firm",
+      "type": "regulatory_oversight",
+      "strength": 0.8,
+      "description": "Regulatory authority over the focal firm's operations and market behaviour"
+    },
+    {
+      "from": "regulator",
+      "to": "competitor_a",
+      "type": "regulatory_oversight",
+      "strength": 0.78,
+      "description": "Same regulatory framework applies to all market participants"
+    },
+    {
+      "from": "regulator",
+      "to": "competitor_b",
+      "type": "regulatory_oversight",
+      "strength": 0.65,
+      "description": "Newer entrant may face lighter or heavier regulatory scrutiny depending on framework"
+    },
+    {
+      "from": "supplier_key",
+      "to": "focal_firm",
+      "type": "supply_chain",
+      "strength": 0.7,
+      "description": "Critical input provider; relationship health affects focal firm's cost structure and capabilities"
+    },
+    {
+      "from": "supplier_key",
+      "to": "competitor_a",
+      "type": "supply_chain",
+      "strength": 0.55,
+      "description": "Supplier also serves competitor; potential information leakage or preferential treatment concern"
+    },
+    {
+      "from": "focal_firm_division_a",
+      "to": "focal_firm",
+      "type": "organisational",
+      "strength": 0.85,
+      "description": "Primary division; high internal influence and budget share"
+    },
+    {
+      "from": "focal_firm_division_b",
+      "to": "focal_firm",
+      "type": "organisational",
+      "strength": 0.65,
+      "description": "Secondary division; competes internally for attention and resources"
+    },
+    {
+      "from": "focal_firm_division_a",
+      "to": "focal_firm_division_b",
+      "type": "internal_competition",
+      "strength": 0.5,
+      "description": "Internal rivalry for capital allocation and management attention"
+    },
+    {
+      "from": "competitor_a",
+      "to": "competitor_b",
+      "type": "competitive_awareness",
+      "strength": 0.5,
+      "description": "Incumbents monitor each other and emerging disruptors"
+    }
+  ],
+  "prediction_questions": [
+    "Will the focal firm gain or lose market share by round 50?",
+    "Which competitor will make the most aggressive strategic move first?",
+    "Will the focal firm pursue an acquisition during the simulation?",
+    "Will the regulator take any action that significantly alters competitive dynamics?",
+    "Will competitor B emerge as a serious threat to the focal firm?",
+    "Which division of the focal firm will receive the largest capital allocation?",
+    "Will the key supplier exercise pricing power during the simulation?",
+    "Will any unexpected alliance form between competitors?"
+  ]
+}
