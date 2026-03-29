@@ -296,8 +296,15 @@ def get_canonical_seed(type_id: str) -> Optional[dict]:
     if not type_def:
         return None
 
-    # Use explicit scaffold if present, otherwise build from type definition
-    scaffold = copy.deepcopy(type_def.get("seed_scaffold", {}))
+    # Check for canonical_seed.json file first
+    canonical_path = os.path.join(DATA_DIR, "simulation_types", type_id, "canonical_seed.json")
+    if os.path.exists(canonical_path):
+        with open(canonical_path, "r") as f:
+            scaffold = json.load(f)
+        scaffold = copy.deepcopy(scaffold)
+    else:
+        # Use explicit scaffold if present, otherwise build from type definition
+        scaffold = copy.deepcopy(type_def.get("seed_scaffold", {}))
 
     if not scaffold:
         # Build scaffold from type definition fields
@@ -388,17 +395,32 @@ def get_sub_templates(type_id: str) -> list[dict]:
     if not type_def:
         return []
 
-    template_ids = type_def.get("sub_templates", [])
     templates = []
 
+    # Check for sub-template files in data/sub_templates/{type_id}/
+    type_templates_dir = os.path.join(SUB_TEMPLATES_DIR, type_id)
+    if os.path.isdir(type_templates_dir):
+        for fname in sorted(os.listdir(type_templates_dir)):
+            if fname.endswith(".json"):
+                fpath = os.path.join(type_templates_dir, fname)
+                with open(fpath, "r") as f:
+                    template = json.load(f)
+                    template["_file"] = fname
+                    template["id"] = fname.replace(".json", "")
+                    templates.append(template)
+
+    # Also check type definition for inline sub_templates
+    template_ids = type_def.get("sub_templates", [])
     for tid in template_ids:
+        # Skip if already loaded from file
+        if any(t.get("id") == tid for t in templates):
+            continue
         template_file = os.path.join(SUB_TEMPLATES_DIR, f"{tid}.json")
         if os.path.exists(template_file):
             with open(template_file, "r") as f:
                 template = json.load(f)
                 templates.append(template)
         else:
-            # Return a basic stub for templates that don't have files yet
             templates.append({
                 "id": tid,
                 "name": tid.replace("_", " ").title(),
